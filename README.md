@@ -13,7 +13,7 @@ The school logo is served from `client/public/school-logo.jpeg` and is used in t
 - MongoDB with Mongoose models
 - RESTful routes for announcements, events, faculty, programs, and admission inquiries
 - Helmet, CORS, public/API rate limiting, separate login throttling, validation, centralized errors, and environment configuration
-- Protected staff dashboard for managing live school content and enquiry status
+- Protected staff dashboard for managing live school content, website page copy, contact details, gallery items, and enquiry follow-up
 
 ## Project Structure
 
@@ -101,7 +101,7 @@ npm run hash:password -- "your strong staff password"
 
 Put the generated value in `ADMIN_PASSWORD_HASH`. Do not store plaintext staff passwords in `.env`.
 
-The public page includes a protected `#admin` dashboard. Staff can sign in with the configured admin credentials to create, edit, publish, hide, and delete announcements, events, faculty profiles, and academic programs, and to update admission enquiry status.
+The public page includes a protected `#admin` dashboard. Staff can sign in with the configured admin credentials to update the public website shell, contact details, hero/about/admissions/facility/gallery copy, create/edit/publish/hide/delete announcements, events, faculty profiles, and academic programs, and manage admission enquiry status, notes, and deletion.
 
 ## Production Build
 
@@ -143,9 +143,13 @@ GET    /api/programs/:id
 PATCH  /api/programs/:id
 DELETE /api/programs/:id
 
+GET    /api/site-content
+PUT    /api/site-content
+
 GET    /api/inquiries
 POST   /api/inquiries
 PATCH  /api/inquiries/:id/status
+DELETE /api/inquiries/:id
 
 GET    /api/admin/announcements
 GET    /api/admin/events
@@ -154,7 +158,7 @@ GET    /api/admin/programs
 GET    /api/admin/inquiries
 ```
 
-The current public UI consumes announcements, events, programs, faculty metadata, and the inquiry submission endpoint. Faculty data is supported in the API and in the admin dashboard without forcing a public redesign.
+The current public UI consumes the site-content singleton, announcements, events, programs, faculty metadata, and the inquiry submission endpoint. Faculty data is supported in the API and in the admin dashboard without forcing a public redesign.
 
 Admin write routes and inquiry management routes require a bearer token from `POST /api/auth/login`:
 

@@ -141,6 +141,92 @@ const inquiryStatusSchema = z.object({
   notes: optionalString(1200)
 }).strict();
 
+const textPairSchema = z.object({
+  label: optionalString(80),
+  text: optionalString(300)
+}).strict();
+
+const valueItemSchema = z.object({
+  label: optionalString(80),
+  title: optionalString(180),
+  body: optionalString(600)
+}).strict();
+
+const imagePanelSchema = z.object({
+  variant: z.enum(["", "large", "classroom", "activity", "wide"]).optional().default(""),
+  title: optionalString(180),
+  description: optionalString(500),
+  imageUrl: optionalUrl,
+  isPublished: requestBoolean(true)
+}).strict();
+
+const facilityItemSchema = z.object({
+  title: optionalString(180),
+  description: optionalString(600)
+}).strict();
+
+const sectionTextSchema = z.object({
+  kicker: optionalString(120),
+  title: optionalString(240),
+  body: optionalString(1000)
+}).strict();
+
+const siteContentSchema = z.object({
+  school: z.object({
+    name: optionalString(140),
+    tagline: optionalString(180),
+    footerTagline: optionalString(180)
+  }).strict().optional(),
+  topBanner: z.object({
+    text: optionalString(300),
+    admissionCtaLabel: optionalString(80)
+  }).strict().optional(),
+  hero: z.object({
+    eyebrow: optionalString(120),
+    title: optionalString(160),
+    highlight: optionalString(180),
+    copy: optionalString(700),
+    primaryActionLabel: optionalString(80),
+    secondaryActionLabel: optionalString(80),
+    panels: z.array(imagePanelSchema).max(6).optional()
+  }).strict().optional(),
+  parentTrust: sectionTextSchema.extend({
+    stats: z.array(textPairSchema).max(8).optional()
+  }).strict().optional(),
+  about: sectionTextSchema.extend({
+    quote: optionalString(300),
+    message: optionalString(800),
+    attribution: optionalString(120),
+    values: z.array(valueItemSchema).max(6).optional()
+  }).strict().optional(),
+  academics: sectionTextSchema.optional(),
+  facilities: sectionTextSchema.extend({
+    items: z.array(facilityItemSchema).max(12).optional()
+  }).strict().optional(),
+  admissions: sectionTextSchema.extend({
+    primaryActionLabel: optionalString(80),
+    secondaryActionLabel: optionalString(80),
+    steps: z.array(textPairSchema).max(8).optional()
+  }).strict().optional(),
+  updates: sectionTextSchema.extend({
+    noticeBoardTitle: optionalString(120)
+  }).strict().optional(),
+  gallery: sectionTextSchema.extend({
+    items: z.array(imagePanelSchema).max(24).optional()
+  }).strict().optional(),
+  adminCopy: sectionTextSchema.optional(),
+  contact: sectionTextSchema.extend({
+    campus: optionalString(400),
+    phoneDisplay: optionalString(80),
+    phoneTel: optionalString(40),
+    whatsappUrl: optionalUrl,
+    email: optionalEmail,
+    officeHours: optionalString(180),
+    formTitle: optionalString(120),
+    classOptions: z.array(z.string().trim().min(1).max(80)).max(20).optional()
+  }).strict().optional()
+}).strict();
+
 module.exports = {
   announcementCreateSchema,
   announcementUpdateSchema,
@@ -153,5 +239,6 @@ module.exports = {
   inquiryStatusSchema,
   objectIdSchema,
   programCreateSchema,
-  programUpdateSchema: nonEmptyUpdate(programCreateSchema)
+  programUpdateSchema: nonEmptyUpdate(programCreateSchema),
+  siteContentSchema
 };

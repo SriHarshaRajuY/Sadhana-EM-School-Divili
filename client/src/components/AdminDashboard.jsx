@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { schoolApi } from "../api/schoolApi";
+import { defaultSiteContent, mergeSiteContent } from "../data/defaultSiteContent";
 
 const ADMIN_TOKEN_KEY = "sadhana_admin_token";
 
@@ -120,6 +121,97 @@ const RESOURCE_CONFIG = {
 
 const RESOURCE_KEYS = Object.keys(RESOURCE_CONFIG);
 
+const SITE_FIELD_GROUPS = [
+  {
+    title: "Brand & Banner",
+    fields: [
+      { path: "school.name", label: "School Name", type: "text" },
+      { path: "school.tagline", label: "Header Tagline", type: "text" },
+      { path: "school.footerTagline", label: "Footer Tagline", type: "text" },
+      { path: "topBanner.text", label: "Top Banner Text", type: "textarea" },
+      { path: "topBanner.admissionCtaLabel", label: "Banner CTA Label", type: "text" }
+    ]
+  },
+  {
+    title: "Hero",
+    fields: [
+      { path: "hero.eyebrow", label: "Eyebrow", type: "text" },
+      { path: "hero.title", label: "Hero Title", type: "text" },
+      { path: "hero.highlight", label: "Hero Highlight", type: "text" },
+      { path: "hero.copy", label: "Hero Copy", type: "textarea" },
+      { path: "hero.primaryActionLabel", label: "Primary Button", type: "text" },
+      { path: "hero.secondaryActionLabel", label: "Secondary Button", type: "text" },
+      { path: "hero.panels", label: "Hero Panels", type: "textarea" }
+    ]
+  },
+  {
+    title: "Parent Trust & About",
+    fields: [
+      { path: "parentTrust.kicker", label: "Stats Kicker", type: "text" },
+      { path: "parentTrust.title", label: "Stats Title", type: "textarea" },
+      { path: "parentTrust.body", label: "Stats Body", type: "textarea" },
+      { path: "parentTrust.stats", label: "Stats", type: "textarea" },
+      { path: "about.quote", label: "Principal Quote", type: "textarea" },
+      { path: "about.message", label: "Principal Message", type: "textarea" },
+      { path: "about.attribution", label: "Message Attribution", type: "text" },
+      { path: "about.kicker", label: "About Kicker", type: "text" },
+      { path: "about.title", label: "About Title", type: "textarea" },
+      { path: "about.body", label: "About Body", type: "textarea" },
+      { path: "about.values", label: "Values", type: "textarea" }
+    ]
+  },
+  {
+    title: "Academics, Facilities & Admissions",
+    fields: [
+      { path: "academics.kicker", label: "Academics Kicker", type: "text" },
+      { path: "academics.title", label: "Academics Title", type: "textarea" },
+      { path: "academics.body", label: "Academics Body", type: "textarea" },
+      { path: "facilities.kicker", label: "Facilities Kicker", type: "text" },
+      { path: "facilities.title", label: "Facilities Title", type: "textarea" },
+      { path: "facilities.body", label: "Facilities Body", type: "textarea" },
+      { path: "facilities.items", label: "Facilities", type: "textarea" },
+      { path: "admissions.kicker", label: "Admissions Kicker", type: "text" },
+      { path: "admissions.title", label: "Admissions Title", type: "textarea" },
+      { path: "admissions.body", label: "Admissions Body", type: "textarea" },
+      { path: "admissions.primaryActionLabel", label: "Admissions Primary Button", type: "text" },
+      { path: "admissions.secondaryActionLabel", label: "Admissions Secondary Button", type: "text" },
+      { path: "admissions.steps", label: "Admission Steps", type: "textarea" }
+    ]
+  },
+  {
+    title: "Updates, Gallery & CMS Copy",
+    fields: [
+      { path: "updates.kicker", label: "Updates Kicker", type: "text" },
+      { path: "updates.title", label: "Updates Title", type: "textarea" },
+      { path: "updates.body", label: "Updates Body", type: "textarea" },
+      { path: "updates.noticeBoardTitle", label: "Notice Board Title", type: "text" },
+      { path: "gallery.kicker", label: "Gallery Kicker", type: "text" },
+      { path: "gallery.title", label: "Gallery Title", type: "textarea" },
+      { path: "gallery.body", label: "Gallery Body", type: "textarea" },
+      { path: "gallery.items", label: "Gallery Items", type: "textarea" },
+      { path: "adminCopy.kicker", label: "CMS Kicker", type: "text" },
+      { path: "adminCopy.title", label: "CMS Title", type: "textarea" },
+      { path: "adminCopy.body", label: "CMS Body", type: "textarea" }
+    ]
+  },
+  {
+    title: "Contact & Enquiry Form",
+    fields: [
+      { path: "contact.kicker", label: "Contact Kicker", type: "text" },
+      { path: "contact.title", label: "Contact Title", type: "textarea" },
+      { path: "contact.body", label: "Contact Body", type: "textarea" },
+      { path: "contact.campus", label: "Campus Address", type: "textarea" },
+      { path: "contact.phoneDisplay", label: "Phone Display", type: "text" },
+      { path: "contact.phoneTel", label: "Phone Tel Link", type: "tel" },
+      { path: "contact.whatsappUrl", label: "WhatsApp URL", type: "url" },
+      { path: "contact.email", label: "Email", type: "email" },
+      { path: "contact.officeHours", label: "Office Hours", type: "text" },
+      { path: "contact.formTitle", label: "Form Title", type: "text" },
+      { path: "contact.classOptions", label: "Class Options", type: "textarea" }
+    ]
+  }
+];
+
 const toDateTimeInput = (value) => {
   if (!value) {
     return "";
@@ -168,6 +260,127 @@ const formatDate = (value) => {
     : date.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 };
 
+const getByPath = (object, path) =>
+  path.split(".").reduce((value, key) => (value ? value[key] : undefined), object);
+
+const setByPath = (object, path, value) => {
+  const keys = path.split(".");
+  const target = keys.slice(0, -1).reduce((current, key) => {
+    if (!current[key] || typeof current[key] !== "object") {
+      current[key] = {};
+    }
+
+    return current[key];
+  }, object);
+
+  target[keys[keys.length - 1]] = value;
+};
+
+const joinRecords = (items, keys) =>
+  (items || [])
+    .map((item) => keys.map((key) => item?.[key] || "").join(" | "))
+    .join("\n");
+
+const parseRecords = (value, keys) =>
+  String(value || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const parts = line.split("|").map((part) => part.trim());
+      return keys.reduce((record, key, index) => {
+        record[key] = parts[index] || "";
+        return record;
+      }, {});
+    });
+
+const flattenSiteContent = (content) => {
+  const merged = mergeSiteContent(defaultSiteContent, content);
+  const draft = {};
+
+  SITE_FIELD_GROUPS.flatMap((group) => group.fields).forEach((field) => {
+    const value = getByPath(merged, field.path);
+
+    if (field.path === "parentTrust.stats" || field.path === "admissions.steps") {
+      draft[field.path] = joinRecords(value, ["label", "text"]);
+      return;
+    }
+
+    if (field.path === "about.values") {
+      draft[field.path] = joinRecords(value, ["label", "title", "body"]);
+      return;
+    }
+
+    if (field.path === "hero.panels") {
+      draft[field.path] = joinRecords(value, ["variant", "title", "description", "imageUrl"]);
+      return;
+    }
+
+    if (field.path === "facilities.items") {
+      draft[field.path] = joinRecords(value, ["title", "description"]);
+      return;
+    }
+
+    if (field.path === "gallery.items") {
+      draft[field.path] = joinRecords(value, ["variant", "title", "description", "imageUrl"]);
+      return;
+    }
+
+    if (field.path === "contact.classOptions") {
+      draft[field.path] = (value || []).join("\n");
+      return;
+    }
+
+    draft[field.path] = value || "";
+  });
+
+  return draft;
+};
+
+const buildSiteContentFromDraft = (draft) => {
+  const content = {};
+
+  SITE_FIELD_GROUPS.flatMap((group) => group.fields).forEach((field) => {
+    const value = draft[field.path] || "";
+
+    if (field.path === "parentTrust.stats" || field.path === "admissions.steps") {
+      setByPath(content, field.path, parseRecords(value, ["label", "text"]));
+      return;
+    }
+
+    if (field.path === "about.values") {
+      setByPath(content, field.path, parseRecords(value, ["label", "title", "body"]));
+      return;
+    }
+
+    if (field.path === "hero.panels" || field.path === "gallery.items") {
+      setByPath(
+        content,
+        field.path,
+        parseRecords(value, ["variant", "title", "description", "imageUrl"]).map((item) => ({
+          ...item,
+          isPublished: true
+        }))
+      );
+      return;
+    }
+
+    if (field.path === "facilities.items") {
+      setByPath(content, field.path, parseRecords(value, ["title", "description"]));
+      return;
+    }
+
+    if (field.path === "contact.classOptions") {
+      setByPath(content, field.path, linesToArray(value));
+      return;
+    }
+
+    setByPath(content, field.path, value);
+  });
+
+  return content;
+};
+
 function AdminDashboard() {
   const [token, setToken] = useState(() => window.localStorage.getItem(ADMIN_TOKEN_KEY) || "");
   const [activeResource, setActiveResource] = useState("announcements");
@@ -177,7 +390,10 @@ function AdminDashboard() {
     faculty: [],
     programs: []
   });
+  const [siteContent, setSiteContent] = useState(defaultSiteContent);
+  const [siteDraft, setSiteDraft] = useState(() => flattenSiteContent(defaultSiteContent));
   const [inquiries, setInquiries] = useState([]);
+  const [inquiryNotes, setInquiryNotes] = useState({});
   const [formData, setFormData] = useState(RESOURCE_CONFIG.announcements.defaults);
   const [editingId, setEditingId] = useState("");
   const [loginData, setLoginData] = useState({ username: "", password: "" });
@@ -185,6 +401,7 @@ function AdminDashboard() {
   const [isBusy, setIsBusy] = useState(false);
 
   const config = RESOURCE_CONFIG[activeResource];
+  const isSiteEditor = activeResource === "siteContent";
 
   const dashboardCounts = useMemo(
     () => ({
@@ -192,14 +409,17 @@ function AdminDashboard() {
       events: records.events.length,
       faculty: records.faculty.length,
       programs: records.programs.length,
-      inquiries: inquiries.length
+      inquiries: inquiries.length,
+      siteContent: siteContent?._id ? 1 : 0
     }),
-    [records, inquiries]
+    [records, inquiries, siteContent]
   );
 
   const resetEditor = (resource = activeResource) => {
     setEditingId("");
-    setFormData(RESOURCE_CONFIG[resource].defaults);
+    if (RESOURCE_CONFIG[resource]) {
+      setFormData(RESOURCE_CONFIG[resource].defaults);
+    }
   };
 
   const loadDashboard = async (adminToken = token) => {
@@ -211,12 +431,13 @@ function AdminDashboard() {
     setStatus({ type: "", message: "" });
 
     try {
-      const [announcements, events, faculty, programs, inquiryList] = await Promise.all([
+      const [announcements, events, faculty, programs, inquiryList, siteContentRecord] = await Promise.all([
         schoolApi.getAdminAnnouncements(adminToken),
         schoolApi.getAdminEvents(adminToken),
         schoolApi.getAdminFaculty(adminToken),
         schoolApi.getAdminPrograms(adminToken),
-        schoolApi.getAdminInquiries(adminToken)
+        schoolApi.getAdminInquiries(adminToken),
+        schoolApi.getSiteContent()
       ]);
 
       setRecords({
@@ -226,6 +447,15 @@ function AdminDashboard() {
         programs: programs || []
       });
       setInquiries(inquiryList || []);
+      setInquiryNotes(
+        (inquiryList || []).reduce((notes, inquiry) => {
+          notes[inquiry._id] = inquiry.notes || "";
+          return notes;
+        }, {})
+      );
+      const mergedSiteContent = mergeSiteContent(defaultSiteContent, siteContentRecord || {});
+      setSiteContent(siteContentRecord ? { ...mergedSiteContent, _id: siteContentRecord._id } : mergedSiteContent);
+      setSiteDraft(flattenSiteContent(mergedSiteContent));
     } catch (error) {
       if (/token|auth|login|unauthorized/i.test(error.message)) {
         window.localStorage.removeItem(ADMIN_TOKEN_KEY);
@@ -275,6 +505,29 @@ function AdminDashboard() {
   const handleResourceChange = (resource) => {
     setActiveResource(resource);
     resetEditor(resource);
+  };
+
+  const handleSiteFieldChange = (path, value) => {
+    setSiteDraft((current) => ({ ...current, [path]: value }));
+  };
+
+  const handleSiteContentSubmit = async (event) => {
+    event.preventDefault();
+
+    setIsBusy(true);
+    setStatus({ type: "", message: "" });
+
+    try {
+      const saved = await schoolApi.updateSiteContent(token, buildSiteContentFromDraft(siteDraft));
+      const mergedSiteContent = mergeSiteContent(defaultSiteContent, saved || {});
+      setSiteContent(saved ? { ...mergedSiteContent, _id: saved._id } : mergedSiteContent);
+      setSiteDraft(flattenSiteContent(mergedSiteContent));
+      setStatus({ type: "success", message: "Website content updated successfully." });
+    } catch (error) {
+      setStatus({ type: "error", message: error.message || "Unable to save website content." });
+    } finally {
+      setIsBusy(false);
+    }
   };
 
   const handleFieldChange = (field, value) => {
@@ -398,16 +651,39 @@ function AdminDashboard() {
     }
   };
 
-  const handleInquiryStatus = async (inquiry, statusValue) => {
+  const handleInquiryStatus = async (inquiry, statusValue = inquiry.status) => {
     setIsBusy(true);
     setStatus({ type: "", message: "" });
 
     try {
-      await schoolApi.updateInquiryStatus(token, inquiry._id, { status: statusValue });
+      await schoolApi.updateInquiryStatus(token, inquiry._id, {
+        status: statusValue,
+        notes: inquiryNotes[inquiry._id] || ""
+      });
       await loadDashboard();
-      setStatus({ type: "success", message: "Inquiry status updated." });
+      setStatus({ type: "success", message: "Inquiry follow-up updated." });
     } catch (error) {
       setStatus({ type: "error", message: error.message || "Unable to update inquiry." });
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleDeleteInquiry = async (inquiry) => {
+    const confirmed = window.confirm(`Delete enquiry from "${inquiry.parentName}"? This cannot be undone.`);
+    if (!confirmed) {
+      return;
+    }
+
+    setIsBusy(true);
+    setStatus({ type: "", message: "" });
+
+    try {
+      await schoolApi.deleteInquiry(token, inquiry._id);
+      await loadDashboard();
+      setStatus({ type: "success", message: "Inquiry deleted." });
+    } catch (error) {
+      setStatus({ type: "error", message: error.message || "Unable to delete inquiry." });
     } finally {
       setIsBusy(false);
     }
@@ -452,6 +728,24 @@ function AdminDashboard() {
       </label>
     );
   };
+
+  const renderSiteField = (field) => (
+    <label className={`admin-field ${field.type === "textarea" ? "wide" : ""}`} key={field.path}>
+      <span>{field.label}</span>
+      {field.type === "textarea" ? (
+        <textarea
+          value={siteDraft[field.path] || ""}
+          onChange={(event) => handleSiteFieldChange(field.path, event.target.value)}
+        />
+      ) : (
+        <input
+          type={field.type}
+          value={siteDraft[field.path] || ""}
+          onChange={(event) => handleSiteFieldChange(field.path, event.target.value)}
+        />
+      )}
+    </label>
+  );
 
   if (!token) {
     return (
@@ -512,6 +806,7 @@ function AdminDashboard() {
       </div>
 
       <div className="admin-summary" aria-label="Admin record counts">
+        <span>Website <b>{dashboardCounts.siteContent}</b></span>
         <span>Notices <b>{dashboardCounts.announcements}</b></span>
         <span>Events <b>{dashboardCounts.events}</b></span>
         <span>Faculty <b>{dashboardCounts.faculty}</b></span>
@@ -520,6 +815,13 @@ function AdminDashboard() {
       </div>
 
       <div className="admin-tabs" role="tablist" aria-label="CMS sections">
+        <button
+          type="button"
+          className={isSiteEditor ? "active" : ""}
+          onClick={() => handleResourceChange("siteContent")}
+        >
+          Website
+        </button>
         {RESOURCE_KEYS.map((resource) => (
           <button
             key={resource}
@@ -534,52 +836,68 @@ function AdminDashboard() {
 
       {status.message ? <div className={`admin-status ${status.type}`}>{status.message}</div> : null}
 
-      <div className="admin-workspace">
-        <form className="admin-editor" onSubmit={handleSubmitRecord}>
-          <div className="admin-editor-head">
-            <strong>{editingId ? `Edit ${config.label}` : `New ${config.label}`}</strong>
-            {editingId ? (
-              <button type="button" className="text-button" onClick={() => resetEditor()}>
-                New Record
-              </button>
-            ) : null}
-          </div>
-          <div className="admin-form-grid">{config.fields.map(renderField)}</div>
+      {isSiteEditor ? (
+        <form className="admin-editor site-editor" onSubmit={handleSiteContentSubmit}>
+          {SITE_FIELD_GROUPS.map((group) => (
+            <section className="site-editor-group" key={group.title}>
+              <div className="admin-editor-head">
+                <strong>{group.title}</strong>
+              </div>
+              <div className="admin-form-grid">{group.fields.map(renderSiteField)}</div>
+            </section>
+          ))}
           <button className="button button-primary" type="submit" disabled={isBusy}>
-            {editingId ? "Update Record" : "Create Record"}
+            Save Website Content
           </button>
         </form>
+      ) : (
+        <div className="admin-workspace">
+          <form className="admin-editor" onSubmit={handleSubmitRecord}>
+            <div className="admin-editor-head">
+              <strong>{editingId ? `Edit ${config.label}` : `New ${config.label}`}</strong>
+              {editingId ? (
+                <button type="button" className="text-button" onClick={() => resetEditor()}>
+                  New Record
+                </button>
+              ) : null}
+            </div>
+            <div className="admin-form-grid">{config.fields.map(renderField)}</div>
+            <button className="button button-primary" type="submit" disabled={isBusy}>
+              {editingId ? "Update Record" : "Create Record"}
+            </button>
+          </form>
 
-        <div className="admin-records">
-          {(records[activeResource] || []).length ? (
-            records[activeResource].map((record) => (
-              <article className="admin-record" key={record._id}>
-                <div>
-                  <strong>{getDisplayName(record)}</strong>
-                  <span>
-                    {activeResource === "events"
-                      ? formatDate(record.startsAt)
-                      : record.category || record.department || record.stage || "No category"}
-                  </span>
-                </div>
-                <div className="admin-record-actions">
-                  <button type="button" onClick={() => handleEditRecord(record)}>
-                    Edit
-                  </button>
-                  <button type="button" onClick={() => handleToggleRecord(record)}>
-                    {record[config.statusKey] ? "Hide" : "Show"}
-                  </button>
-                  <button type="button" className="danger" onClick={() => handleDeleteRecord(record)}>
-                    Delete
-                  </button>
-                </div>
-              </article>
-            ))
-          ) : (
-            <div className="admin-empty">No {config.label.toLowerCase()} records have been added yet.</div>
-          )}
+          <div className="admin-records">
+            {(records[activeResource] || []).length ? (
+              records[activeResource].map((record) => (
+                <article className="admin-record" key={record._id}>
+                  <div>
+                    <strong>{getDisplayName(record)}</strong>
+                    <span>
+                      {activeResource === "events"
+                        ? formatDate(record.startsAt)
+                        : record.category || record.department || record.stage || "No category"}
+                    </span>
+                  </div>
+                  <div className="admin-record-actions">
+                    <button type="button" onClick={() => handleEditRecord(record)}>
+                      Edit
+                    </button>
+                    <button type="button" onClick={() => handleToggleRecord(record)}>
+                      {record[config.statusKey] ? "Hide" : "Show"}
+                    </button>
+                    <button type="button" className="danger" onClick={() => handleDeleteRecord(record)}>
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <div className="admin-empty">No {config.label.toLowerCase()} records have been added yet.</div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="admin-inquiries">
         <div className="admin-editor-head">
@@ -608,6 +926,23 @@ function AdminDashboard() {
                 <option value="admitted">Admitted</option>
                 <option value="closed">Closed</option>
               </select>
+              <label className="admin-field inquiry-note">
+                <span>Follow-up Notes</span>
+                <textarea
+                  value={inquiryNotes[inquiry._id] || ""}
+                  onChange={(event) =>
+                    setInquiryNotes((current) => ({ ...current, [inquiry._id]: event.target.value }))
+                  }
+                />
+              </label>
+              <div className="admin-record-actions">
+                <button type="button" onClick={() => handleInquiryStatus(inquiry)} disabled={isBusy}>
+                  Save
+                </button>
+                <button type="button" className="danger" onClick={() => handleDeleteInquiry(inquiry)} disabled={isBusy}>
+                  Delete
+                </button>
+              </div>
             </article>
           ))
         ) : (

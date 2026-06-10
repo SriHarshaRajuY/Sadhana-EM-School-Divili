@@ -72,6 +72,11 @@ export const schoolApi = {
       method: "DELETE",
       headers: authHeader(token)
     }),
+  deleteInquiry: (token, id) =>
+    request(`/api/inquiries/${id}`, {
+      method: "DELETE",
+      headers: authHeader(token)
+    }),
   getAnnouncements: () => request("/api/announcements"),
   getAdminAnnouncements: (token) => request("/api/admin/announcements", { headers: authHeader(token) }),
   getAdminEvents: (token) => request("/api/admin/events", { headers: authHeader(token) }),
@@ -81,6 +86,7 @@ export const schoolApi = {
   getEvents: () => request("/api/events"),
   getFaculty: () => request("/api/faculty"),
   getPrograms: () => request("/api/programs"),
+  getSiteContent: () => request("/api/site-content"),
   submitInquiry: (data) =>
     request("/api/inquiries", {
       method: "POST",
@@ -113,6 +119,12 @@ export const schoolApi = {
   updateProgram: (token, id, data) =>
     request(`/api/programs/${id}`, {
       method: "PATCH",
+      headers: authHeader(token),
+      body: JSON.stringify(data)
+    }),
+  updateSiteContent: (token, data) =>
+    request("/api/site-content", {
+      method: "PUT",
       headers: authHeader(token),
       body: JSON.stringify(data)
     })

@@ -401,6 +401,8 @@
       background:
         linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0)),
         linear-gradient(135deg, #244f98, #f2bd58);
+      background-position: center;
+      background-size: cover;
       transition: transform 260ms var(--ease), box-shadow 260ms var(--ease), filter 260ms var(--ease);
     }
 
@@ -1187,6 +1189,10 @@
       resize: vertical;
     }
 
+    .admin-field.wide {
+      grid-column: 1 / -1;
+    }
+
     .admin-field input:focus,
     .admin-field textarea:focus,
     .admin-inquiry select:focus {
@@ -1212,6 +1218,22 @@
       margin-top: 14px;
       border: 0;
       cursor: pointer;
+    }
+
+    .site-editor {
+      display: grid;
+      gap: 16px;
+    }
+
+    .site-editor-group {
+      border: 1px solid rgba(21, 32, 51, 0.11);
+      border-radius: var(--radius);
+      background: #fbfcfe;
+      padding: 16px;
+    }
+
+    .site-editor-group .admin-editor-head {
+      margin-bottom: 12px;
     }
 
     .admin-records {
@@ -1278,6 +1300,11 @@
     .admin-inquiry select {
       width: 170px;
       background: var(--white);
+    }
+
+    .inquiry-note,
+    .admin-inquiry .admin-record-actions {
+      grid-column: 1 / -1;
     }
 
     .admin-logout {

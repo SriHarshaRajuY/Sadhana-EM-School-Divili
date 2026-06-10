@@ -8,6 +8,7 @@ const eventsRoutes = require("./eventsRoutes");
 const facultyRoutes = require("./facultyRoutes");
 const inquiriesRoutes = require("./inquiriesRoutes");
 const programsRoutes = require("./programsRoutes");
+const siteContentRoutes = require("./siteContentRoutes");
 
 const router = express.Router();
 
@@ -31,5 +32,6 @@ router.use("/events", eventsRoutes);
 router.use("/faculty", facultyRoutes);
 router.use("/inquiries", inquiriesRoutes);
 router.use("/programs", programsRoutes);
+router.use("/site-content", siteContentRoutes);
 
 module.exports = router;

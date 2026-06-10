@@ -47,6 +47,22 @@ const listInquiries = asyncHandler(async (req, res) => {
   return res.json(result);
 });
 
+const deleteInquiry = asyncHandler(async (req, res) => {
+  if (!isMongoConnected()) {
+    throw databaseUnavailable();
+  }
+
+  const data = await Inquiry.findByIdAndDelete(req.params.id);
+
+  if (!data) {
+    const error = new Error("Inquiry not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return res.status(204).send();
+});
+
 const updateInquiryStatus = asyncHandler(async (req, res) => {
   if (!isMongoConnected()) {
     throw databaseUnavailable();
@@ -72,6 +88,7 @@ const updateInquiryStatus = asyncHandler(async (req, res) => {
 
 module.exports = {
   createInquiry,
+  deleteInquiry,
   listInquiries,
   updateInquiryStatus
 };

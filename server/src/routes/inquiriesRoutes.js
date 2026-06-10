@@ -2,6 +2,7 @@ const express = require("express");
 const rateLimit = require("express-rate-limit");
 const {
   createInquiry,
+  deleteInquiry,
   listInquiries,
   updateInquiryStatus
 } = require("../controllers/inquiriesController");
@@ -35,5 +36,7 @@ router.patch(
   validateBody(inquiryStatusSchema),
   updateInquiryStatus
 );
+
+router.delete("/:id", requireAdmin, validateParams(objectIdSchema), deleteInquiry);
 
 module.exports = router;
