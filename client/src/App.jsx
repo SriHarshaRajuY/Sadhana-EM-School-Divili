@@ -768,7 +768,7 @@ function App() {
             <form className="form" action="#" method="post" onSubmit={handleInquirySubmit} aria-busy={isSubmitting}>
               <h3>{contact.formTitle}</h3>
               <div className="field">
-                <label htmlFor="parent">Parent Name</label>
+                <label htmlFor="parent">Parent Name <span className="required-mark">*</span></label>
                 <input
                   id="parent"
                   name="parent"
@@ -792,7 +792,7 @@ function App() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="phone">Mobile Number</label>
+                <label htmlFor="phone">Mobile Number <span className="required-mark">*</span></label>
                 <input
                   id="phone"
                   name="phone"
@@ -818,7 +818,7 @@ function App() {
                 />
               </div>
               <div className="field">
-                <label htmlFor="class">Class Interested</label>
+                <label htmlFor="class">Class Interested <span className="required-mark">*</span></label>
                 <select id="class" name="class" defaultValue={classOptions[0]} required>
                   {classOptions.map((option) => (
                     <option key={option}>{option}</option>

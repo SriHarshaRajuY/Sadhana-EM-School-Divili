@@ -71,7 +71,13 @@ const RESOURCE_CONFIG = {
       },
       { name: "location", label: "Location", type: "text" },
       { name: "category", label: "Category", type: "text" },
-      { name: "imageUrl", label: "Image URL", type: "url", wide: true },
+      {
+        name: "imageUrl",
+        label: "Event Image",
+        type: "image",
+        wide: true,
+        helper: "Optional. Upload a clear event photo when one is available."
+      },
       { name: "isPublished", label: "Published", type: "checkbox" }
     ]
   },
@@ -104,7 +110,13 @@ const RESOURCE_CONFIG = {
       { name: "bio", label: "Bio", type: "textarea", wide: true },
       { name: "email", label: "Email", type: "email" },
       { name: "phone", label: "Phone", type: "tel" },
-      { name: "photoUrl", label: "Photo URL", type: "url", wide: true },
+      {
+        name: "photoUrl",
+        label: "Faculty Photo",
+        type: "image",
+        wide: true,
+        helper: "Optional. Upload a clear staff photo when one is available."
+      },
       { name: "order", label: "Display Order", type: "number" },
       { name: "isActive", label: "Active", type: "checkbox" }
     ]
@@ -622,6 +634,7 @@ function AdminDashboard() {
 
   const handleSiteFieldChange = (path, value) => {
     setSiteDraft((current) => ({ ...current, [path]: value }));
+    setStatus((current) => (current.type === "error" ? { type: "", message: "" } : current));
   };
 
   const handleRecordImageUpload = async (fieldName, file) => {
@@ -693,6 +706,18 @@ function AdminDashboard() {
 
   const handleFieldChange = (field, value) => {
     setFormData((current) => ({ ...current, [field]: value }));
+    setStatus((current) => (current.type === "error" ? { type: "", message: "" } : current));
+  };
+
+  const handleImageRemove = (fieldName) => {
+    const publicIdField = fieldName === "photoUrl" ? "photoPublicId" : "imagePublicId";
+
+    setFormData((current) => ({
+      ...current,
+      [fieldName]: "",
+      [publicIdField]: ""
+    }));
+    setStatus((current) => (current.type === "error" ? { type: "", message: "" } : current));
   };
 
   const validateRecordDraft = () => {
@@ -934,6 +959,31 @@ function AdminDashboard() {
       );
     }
 
+    if (field.type === "image") {
+      return (
+        <label className={`admin-field ${field.wide ? "wide" : ""}`} key={field.name}>
+          <span>{label}</span>
+          <div className="admin-upload image-upload">
+            {formData[field.name] ? (
+              <img src={formData[field.name]} alt={`${field.label} preview`} />
+            ) : null}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={(event) => handleRecordImageUpload(field.name, event.target.files?.[0])}
+            />
+            <small>{uploadingKey === `${activeResource}.${field.name}` ? "Uploading..." : "Upload to Cloudinary"}</small>
+            {formData[field.name] ? (
+              <button className="text-button" type="button" onClick={() => handleImageRemove(field.name)}>
+                Remove image
+              </button>
+            ) : null}
+          </div>
+          {field.helper ? <small className="admin-help">{field.helper}</small> : null}
+        </label>
+      );
+    }
+
     return (
       <label className={`admin-field ${field.wide ? "wide" : ""}`} key={field.name}>
         <span>{label}</span>
@@ -944,19 +994,6 @@ function AdminDashboard() {
           onChange={(event) => handleFieldChange(field.name, event.target.value)}
         />
         {field.helper ? <small className="admin-help">{field.helper}</small> : null}
-        {field.type === "url" && /image|photo/i.test(field.name) ? (
-          <div className="admin-upload">
-            {formData[field.name] ? (
-              <img src={formData[field.name]} alt={`${field.label} preview`} />
-            ) : null}
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/gif"
-              onChange={(event) => handleRecordImageUpload(field.name, event.target.files?.[0])}
-            />
-            <small>{uploadingKey === `${activeResource}.${field.name}` ? "Uploading..." : "Upload to Cloudinary"}</small>
-          </div>
-        ) : null}
       </label>
     );
   };
@@ -1006,7 +1043,7 @@ function AdminDashboard() {
 
         <form className="admin-login" onSubmit={handleLogin}>
           <label className="admin-field">
-            <span>Username</span>
+            <span>Username <b className="admin-required">*</b></span>
             <input
               value={loginData.username}
               autoComplete="username"
@@ -1015,7 +1052,7 @@ function AdminDashboard() {
             />
           </label>
           <label className="admin-field">
-            <span>Password</span>
+            <span>Password <b className="admin-required">*</b></span>
             <input
               type="password"
               value={loginData.password}
