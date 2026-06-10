@@ -43,6 +43,7 @@ const env = {
   PORT: parseNumber(process.env.PORT, 5000),
   MONGODB_URI: process.env.MONGODB_URI || "",
   ADMIN_USERNAME: process.env.ADMIN_USERNAME || "",
+  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "",
   ADMIN_PASSWORD_HASH: process.env.ADMIN_PASSWORD_HASH || "",
   ADMIN_TOKEN_SECRET: process.env.ADMIN_TOKEN_SECRET || "",
   ADMIN_TOKEN_EXPIRES_IN_MINUTES: parseNumber(process.env.ADMIN_TOKEN_EXPIRES_IN_MINUTES, 60),
@@ -72,8 +73,8 @@ if (env.NODE_ENV === "production" && !env.ADMIN_USERNAME) {
   throw new Error("ADMIN_USERNAME is required in production.");
 }
 
-if (env.NODE_ENV === "production" && !env.ADMIN_PASSWORD_HASH) {
-  throw new Error("ADMIN_PASSWORD_HASH is required in production.");
+if (env.NODE_ENV === "production" && !env.ADMIN_PASSWORD_HASH && !env.ADMIN_PASSWORD) {
+  throw new Error("ADMIN_PASSWORD or ADMIN_PASSWORD_HASH is required in production.");
 }
 
 if (env.NODE_ENV === "production" && !env.ADMIN_TOKEN_SECRET) {

@@ -48,6 +48,14 @@ const verifyPassword = (password, storedHash) => {
   return timingSafeEqualText(candidateHash, hash);
 };
 
+const verifyPlainPassword = (password, expectedPassword) => {
+  if (!expectedPassword) {
+    return false;
+  }
+
+  return timingSafeEqualText(String(password || ""), String(expectedPassword));
+};
+
 const signToken = (payload) => {
   if (!env.ADMIN_TOKEN_SECRET) {
     const error = new Error("Admin token signing is not configured.");
@@ -121,5 +129,6 @@ module.exports = {
   createAdminToken,
   hashPassword,
   verifyAdminToken,
-  verifyPassword
+  verifyPassword,
+  verifyPlainPassword
 };

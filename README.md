@@ -55,6 +55,7 @@ Important variables:
 PORT=5000
 MONGODB_URI=your_mongodb_connection_string
 ADMIN_USERNAME=school_staff_username
+ADMIN_PASSWORD=school_staff_password
 ADMIN_PASSWORD_HASH=scrypt_password_hash
 ADMIN_TOKEN_SECRET=long_random_token_secret
 ADMIN_TOKEN_EXPIRES_IN_MINUTES=60
@@ -81,7 +82,7 @@ VITE_SCHOOL_OFFICE_HOURS=
 
 The application does not ship seed/demo school records. If MongoDB is connected but empty, public content APIs return empty arrays and the frontend shows neutral empty states until real school content is added. If MongoDB is unavailable, database-backed APIs return a clear service-unavailable error instead of pretending a parent enquiry or staff update succeeded.
 
-In production, `MONGODB_URI`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, `ADMIN_TOKEN_SECRET`, and the Cloudinary credentials are required.
+In production, `MONGODB_URI`, `ADMIN_USERNAME`, either `ADMIN_PASSWORD` or `ADMIN_PASSWORD_HASH`, `ADMIN_TOKEN_SECRET`, and the Cloudinary credentials are required.
 
 ## Install and Run
 
@@ -99,13 +100,13 @@ The Vite dev server proxies `/api` calls to Express.
 
 ## Admin Password Hash
 
-Generate a password hash for the real staff password:
+You can use either a plain environment password or a password hash. For the strongest production setup, generate a password hash for the real staff password:
 
 ```bash
 npm run hash:password -- "your strong staff password"
 ```
 
-Put the generated value in `ADMIN_PASSWORD_HASH`. Do not store plaintext staff passwords in `.env`.
+Put the generated value in `ADMIN_PASSWORD_HASH`. If you choose the simpler setup, set `ADMIN_PASSWORD` directly in the deployment platform environment variables.
 
 The public page includes a protected `#admin` dashboard. Staff can sign in with the configured admin credentials to update the public website shell, contact details, hero/about/admissions/facility/gallery copy, upload Cloudinary images, create/edit/publish/hide/delete announcements, events, faculty profiles, and academic programs, and manage admission enquiry status, notes, and deletion.
 
@@ -185,7 +186,7 @@ Public parent-facing routes remain open:
 
 For a standard Node host:
 
-1. Set `NODE_ENV=production`, `MONGODB_URI`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, `ADMIN_TOKEN_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `PORT`, and `CORS_ORIGIN`.
+1. Set `NODE_ENV=production`, `MONGODB_URI`, `ADMIN_USERNAME`, either `ADMIN_PASSWORD` or `ADMIN_PASSWORD_HASH`, `ADMIN_TOKEN_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `PORT`, and `CORS_ORIGIN`.
 2. Run `npm install`.
 3. Run `npm run check:deploy`.
 4. Run `npm run build`.

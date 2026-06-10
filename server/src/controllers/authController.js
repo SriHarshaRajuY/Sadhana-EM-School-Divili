@@ -1,16 +1,22 @@
 const env = require("../config/env");
 const asyncHandler = require("../middleware/asyncHandler");
-const { createAdminToken, verifyPassword } = require("../services/authService");
+const {
+  createAdminToken,
+  verifyPassword,
+  verifyPlainPassword
+} = require("../services/authService");
 
 const login = asyncHandler(async (req, res) => {
-  if (!env.ADMIN_USERNAME || !env.ADMIN_PASSWORD_HASH || !env.ADMIN_TOKEN_SECRET) {
+  if (!env.ADMIN_USERNAME || (!env.ADMIN_PASSWORD_HASH && !env.ADMIN_PASSWORD) || !env.ADMIN_TOKEN_SECRET) {
     const error = new Error("Admin authentication is not configured.");
     error.statusCode = 503;
     throw error;
   }
 
   const usernameMatches = req.body.username === env.ADMIN_USERNAME;
-  const passwordMatches = verifyPassword(req.body.password, env.ADMIN_PASSWORD_HASH);
+  const passwordMatches = env.ADMIN_PASSWORD_HASH
+    ? verifyPassword(req.body.password, env.ADMIN_PASSWORD_HASH)
+    : verifyPlainPassword(req.body.password, env.ADMIN_PASSWORD);
 
   if (!usernameMatches || !passwordMatches) {
     const error = new Error("Invalid username or password.");
@@ -34,4 +40,3 @@ const login = asyncHandler(async (req, res) => {
 module.exports = {
   login
 };
-
