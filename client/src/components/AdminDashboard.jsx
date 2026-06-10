@@ -54,8 +54,21 @@ const RESOURCE_CONFIG = {
     fields: [
       { name: "title", label: "Title", type: "text", required: true, wide: true },
       { name: "description", label: "Description", type: "textarea", required: true, wide: true },
-      { name: "startsAt", label: "Start Date", type: "datetime-local", required: true, wide: true },
-      { name: "endsAt", label: "End Date", type: "datetime-local", wide: true },
+      {
+        name: "startsAt",
+        label: "Start Date",
+        type: "datetime-local",
+        required: true,
+        wide: true,
+        helper: "Required. This date is used to place the event correctly on the website."
+      },
+      {
+        name: "endsAt",
+        label: "End Date",
+        type: "datetime-local",
+        wide: true,
+        helper: "Optional. Add this only when the event continues beyond the start date."
+      },
       { name: "location", label: "Location", type: "text" },
       { name: "category", label: "Category", type: "text" },
       { name: "imageUrl", label: "Image URL", type: "url", wide: true },
@@ -269,8 +282,61 @@ const getErrorMessage = (error) => String(error?.message || "");
 const isStaffAccessError = (error) =>
   /token|auth|login|unauthorized|bearer|session/i.test(getErrorMessage(error));
 
-const getFriendlyStaffMessage = (error, fallback) => {
+const getFriendlyFieldName = (fieldName) =>
+  String(fieldName || "")
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (char) => char.toUpperCase())
+    .trim();
+
+const getFieldLabel = (config, path) => {
+  const fieldName = String(path || "").split(".")[0];
+  const field = config?.fields?.find((item) => item.name === fieldName);
+  return field?.label || getFriendlyFieldName(fieldName);
+};
+
+const formatValidationMessage = (detail, config) => {
+  const label = getFieldLabel(config, detail?.path);
+  const message = String(detail?.message || "");
+  const normalized = message.toLowerCase();
+
+  if (/required/.test(normalized)) {
+    return `${label} is required.`;
+  }
+
+  if (/invalid date|expected date|received nan/.test(normalized)) {
+    return `${label} must be a valid date and time.`;
+  }
+
+  if (/invalid url|url/.test(normalized)) {
+    return `${label} must be a valid web address.`;
+  }
+
+  if (/email/.test(normalized)) {
+    return `${label} must be a valid email address.`;
+  }
+
+  if (/too small|min|at least/.test(normalized)) {
+    return `${label} needs a little more detail.`;
+  }
+
+  return message ? `${label}: ${message}` : `${label} needs attention.`;
+};
+
+const getValidationDetailsMessage = (details, config) => {
+  if (!Array.isArray(details) || !details.length) {
+    return "";
+  }
+
+  return details.map((detail) => formatValidationMessage(detail, config)).join(" ");
+};
+
+const getFriendlyStaffMessage = (error, fallback, config) => {
   const message = getErrorMessage(error);
+  const detailsMessage = getValidationDetailsMessage(error?.details, config);
+
+  if (detailsMessage) {
+    return detailsMessage;
+  }
 
   if (/invalid username|invalid password|username or password/i.test(message)) {
     return "Please check the username and password and try again.";
@@ -281,7 +347,7 @@ const getFriendlyStaffMessage = (error, fallback) => {
   }
 
   if (/validation|required|must be|expected|valid/i.test(message)) {
-    return "Please check the entered details and try again.";
+    return "Some details need attention. Please review the highlighted fields and try again.";
   }
 
   if (/database|service unavailable|not configured|internal server/i.test(message)) {
@@ -629,6 +695,45 @@ function AdminDashboard() {
     setFormData((current) => ({ ...current, [field]: value }));
   };
 
+  const validateRecordDraft = () => {
+    const missingFields = config.fields.filter((field) => {
+      if (!field.required || field.type === "checkbox") {
+        return false;
+      }
+
+      return !String(formData[field.name] ?? "").trim();
+    });
+
+    if (missingFields.length) {
+      const fieldNames = missingFields.map((field) => field.label).join(", ");
+      return missingFields.length === 1 ? `${fieldNames} is required.` : `${fieldNames} are required.`;
+    }
+
+    if (activeResource === "events" && formData.startsAt && formData.endsAt) {
+      const startsAt = new Date(formData.startsAt);
+      const endsAt = new Date(formData.endsAt);
+
+      if (!Number.isNaN(startsAt.getTime()) && !Number.isNaN(endsAt.getTime()) && endsAt <= startsAt) {
+        return "End Date must be after Start Date.";
+      }
+    }
+
+    if (activeResource === "announcements" && formData.publishedAt && formData.expiresAt) {
+      const publishedAt = new Date(formData.publishedAt);
+      const expiresAt = new Date(formData.expiresAt);
+
+      if (
+        !Number.isNaN(publishedAt.getTime()) &&
+        !Number.isNaN(expiresAt.getTime()) &&
+        expiresAt <= publishedAt
+      ) {
+        return "Expiry Date must be after Publish Date.";
+      }
+    }
+
+    return "";
+  };
+
   const payloadForResource = () => {
     const payload = { ...formData };
 
@@ -659,6 +764,13 @@ function AdminDashboard() {
   const handleSubmitRecord = async (event) => {
     event.preventDefault();
 
+    const validationMessage = validateRecordDraft();
+    if (validationMessage) {
+      setStatus({ type: "error", message: validationMessage });
+      event.currentTarget.reportValidity?.();
+      return;
+    }
+
     setIsBusy(true);
     setStatus({ type: "", message: "" });
 
@@ -677,7 +789,10 @@ function AdminDashboard() {
         message: `${config.singularLabel || config.label} ${editingId ? "updated" : "created"} successfully.`
       });
     } catch (error) {
-      setStatus({ type: "error", message: getFriendlyStaffMessage(error, "Unable to save this record. Please try again.") });
+      setStatus({
+        type: "error",
+        message: getFriendlyStaffMessage(error, "Unable to save this record. Please try again.", config)
+      });
     } finally {
       setIsBusy(false);
     }
@@ -785,6 +900,13 @@ function AdminDashboard() {
   };
 
   const renderField = (field) => {
+    const label = (
+      <>
+        {field.label}
+        {field.required ? <b className="admin-required"> *</b> : null}
+      </>
+    );
+
     if (field.type === "checkbox") {
       return (
         <label className="admin-check" key={field.name}>
@@ -793,7 +915,7 @@ function AdminDashboard() {
             checked={Boolean(formData[field.name])}
             onChange={(event) => handleFieldChange(field.name, event.target.checked)}
           />
-          <span>{field.label}</span>
+          <span>{label}</span>
         </label>
       );
     }
@@ -801,25 +923,27 @@ function AdminDashboard() {
     if (field.type === "textarea") {
       return (
         <label className={`admin-field ${field.wide ? "wide" : ""}`} key={field.name}>
-          <span>{field.label}</span>
+          <span>{label}</span>
           <textarea
             value={formData[field.name] || ""}
             required={field.required}
             onChange={(event) => handleFieldChange(field.name, event.target.value)}
           />
+          {field.helper ? <small className="admin-help">{field.helper}</small> : null}
         </label>
       );
     }
 
     return (
       <label className={`admin-field ${field.wide ? "wide" : ""}`} key={field.name}>
-        <span>{field.label}</span>
+        <span>{label}</span>
         <input
           type={field.type}
           value={formData[field.name] || ""}
           required={field.required}
           onChange={(event) => handleFieldChange(field.name, event.target.value)}
         />
+        {field.helper ? <small className="admin-help">{field.helper}</small> : null}
         {field.type === "url" && /image|photo/i.test(field.name) ? (
           <div className="admin-upload">
             {formData[field.name] ? (

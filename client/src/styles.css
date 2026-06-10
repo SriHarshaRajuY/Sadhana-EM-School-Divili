@@ -1505,6 +1505,11 @@
       font-weight: 900;
     }
 
+    .admin-required {
+      color: #9b2d2d;
+      font: inherit;
+    }
+
     .admin-field input,
     .admin-field textarea,
     .admin-inquiry select {
@@ -1522,6 +1527,13 @@
     .admin-field input[type="datetime-local"] {
       font-size: 0.86rem;
       padding-inline: 10px 8px;
+    }
+
+    .admin-help {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      line-height: 1.35;
     }
 
     .admin-upload {
