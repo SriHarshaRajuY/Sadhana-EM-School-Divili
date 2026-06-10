@@ -205,7 +205,7 @@ function App() {
             <a href="#facilities">Facilities</a>
             <a href="#events">Events</a>
             <a href="#gallery">Gallery</a>
-            <a href="#admin">Admin</a>
+            <a href="#admin">Staff Login</a>
             <a href="#contact" className="primary-link">Admissions</a>
           </div>
         </nav>
@@ -479,19 +479,19 @@ function App() {
               <div className="contact-card" style={{ marginTop: 28 }}>
                 <div className="contact-row">
                   <strong>Campus</strong>
-                  <span>{campus || "Campus details will be added by the school office."}</span>
+                  <span>{campus || "Campus address will be updated shortly."}</span>
                 </div>
                 <div className="contact-row">
                   <strong>Phone</strong>
-                  <span>{phoneDisplay || "Phone number will be added by the school office."}</span>
+                  <span>{phoneDisplay || "Phone number will be updated shortly."}</span>
                 </div>
                 <div className="contact-row">
                   <strong>Email</strong>
-                  <span>{email || "Email address will be added by the school office."}</span>
+                  <span>{email || "Email address will be updated shortly."}</span>
                 </div>
                 <div className="contact-row">
                   <strong>Office Hours</strong>
-                  <span>{officeHours || "Office hours will be added by the school office."}</span>
+                  <span>{officeHours || "Office timings will be updated shortly."}</span>
                 </div>
               </div>
             </div>

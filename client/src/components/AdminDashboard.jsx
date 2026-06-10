@@ -7,6 +7,7 @@ const ADMIN_TOKEN_KEY = "sadhana_admin_token";
 const RESOURCE_CONFIG = {
   announcements: {
     label: "Announcements",
+    singularLabel: "Announcement",
     statusKey: "isPublished",
     list: schoolApi.getAdminAnnouncements,
     create: schoolApi.createAnnouncement,
@@ -23,16 +24,17 @@ const RESOURCE_CONFIG = {
     },
     fields: [
       { name: "title", label: "Title", type: "text", required: true },
-      { name: "body", label: "Notice Body", type: "textarea", required: true },
+      { name: "body", label: "Notice Body", type: "textarea", required: true, wide: true },
       { name: "category", label: "Category", type: "text" },
       { name: "priority", label: "Priority", type: "number" },
-      { name: "publishedAt", label: "Publish Date", type: "datetime-local" },
-      { name: "expiresAt", label: "Expiry Date", type: "datetime-local" },
+      { name: "publishedAt", label: "Publish Date", type: "datetime-local", wide: true },
+      { name: "expiresAt", label: "Expiry Date", type: "datetime-local", wide: true },
       { name: "isPublished", label: "Published", type: "checkbox" }
     ]
   },
   events: {
     label: "Events",
+    singularLabel: "Event",
     statusKey: "isPublished",
     list: schoolApi.getAdminEvents,
     create: schoolApi.createEvent,
@@ -50,18 +52,19 @@ const RESOURCE_CONFIG = {
       isPublished: true
     },
     fields: [
-      { name: "title", label: "Title", type: "text", required: true },
-      { name: "description", label: "Description", type: "textarea", required: true },
-      { name: "startsAt", label: "Start Date", type: "datetime-local", required: true },
-      { name: "endsAt", label: "End Date", type: "datetime-local" },
+      { name: "title", label: "Title", type: "text", required: true, wide: true },
+      { name: "description", label: "Description", type: "textarea", required: true, wide: true },
+      { name: "startsAt", label: "Start Date", type: "datetime-local", required: true, wide: true },
+      { name: "endsAt", label: "End Date", type: "datetime-local", wide: true },
       { name: "location", label: "Location", type: "text" },
       { name: "category", label: "Category", type: "text" },
-      { name: "imageUrl", label: "Image URL", type: "url" },
+      { name: "imageUrl", label: "Image URL", type: "url", wide: true },
       { name: "isPublished", label: "Published", type: "checkbox" }
     ]
   },
   faculty: {
     label: "Faculty",
+    singularLabel: "Faculty Profile",
     statusKey: "isActive",
     list: schoolApi.getAdminFaculty,
     create: schoolApi.createFaculty,
@@ -84,17 +87,18 @@ const RESOURCE_CONFIG = {
       { name: "name", label: "Name", type: "text", required: true },
       { name: "role", label: "Role", type: "text", required: true },
       { name: "department", label: "Department", type: "text" },
-      { name: "qualifications", label: "Qualifications", type: "textarea" },
-      { name: "bio", label: "Bio", type: "textarea" },
+      { name: "qualifications", label: "Qualifications", type: "textarea", wide: true },
+      { name: "bio", label: "Bio", type: "textarea", wide: true },
       { name: "email", label: "Email", type: "email" },
       { name: "phone", label: "Phone", type: "tel" },
-      { name: "photoUrl", label: "Photo URL", type: "url" },
+      { name: "photoUrl", label: "Photo URL", type: "url", wide: true },
       { name: "order", label: "Display Order", type: "number" },
       { name: "isActive", label: "Active", type: "checkbox" }
     ]
   },
   programs: {
     label: "Programs",
+    singularLabel: "Program",
     statusKey: "isPublished",
     list: schoolApi.getAdminPrograms,
     create: schoolApi.createProgram,
@@ -112,9 +116,9 @@ const RESOURCE_CONFIG = {
     fields: [
       { name: "stage", label: "Stage", type: "text", required: true },
       { name: "title", label: "Title", type: "text", required: true },
-      { name: "description", label: "Description", type: "textarea", required: true },
+      { name: "description", label: "Description", type: "textarea", required: true, wide: true },
       { name: "grades", label: "Grades", type: "text" },
-      { name: "highlights", label: "Highlights", type: "textarea" },
+      { name: "highlights", label: "Highlights", type: "textarea", wide: true },
       { name: "order", label: "Display Order", type: "number" },
       { name: "isPublished", label: "Published", type: "checkbox" }
     ]
@@ -181,7 +185,7 @@ const SITE_FIELD_GROUPS = [
     ]
   },
   {
-    title: "Updates, Gallery & CMS Copy",
+    title: "Updates, Gallery & Staff Portal Copy",
     fields: [
       { path: "updates.kicker", label: "Updates Kicker", type: "text" },
       { path: "updates.title", label: "Updates Title", type: "textarea" },
@@ -191,9 +195,9 @@ const SITE_FIELD_GROUPS = [
       { path: "gallery.title", label: "Gallery Title", type: "textarea" },
       { path: "gallery.body", label: "Gallery Body", type: "textarea" },
       { path: "gallery.items", label: "Gallery Items", type: "textarea", uploadContext: "gallery" },
-      { path: "adminCopy.kicker", label: "CMS Kicker", type: "text" },
-      { path: "adminCopy.title", label: "CMS Title", type: "textarea" },
-      { path: "adminCopy.body", label: "CMS Body", type: "textarea" }
+      { path: "adminCopy.kicker", label: "Portal Kicker", type: "text" },
+      { path: "adminCopy.title", label: "Portal Title", type: "textarea" },
+      { path: "adminCopy.body", label: "Portal Body", type: "textarea" }
     ]
   },
   {
@@ -250,6 +254,8 @@ const cleanPayload = (payload) =>
   );
 
 const getDisplayName = (record) => record.title || record.name || record.parentName || "Untitled record";
+
+const getRecordLabel = (config) => (config.singularLabel || config.label).toLowerCase();
 
 const formatDate = (value) => {
   if (!value) {
@@ -467,7 +473,7 @@ function AdminDashboard() {
 
       setStatus({
         type: "error",
-        message: error.message || "Unable to load admin dashboard."
+        message: error.message || "Unable to load staff portal."
       });
     } finally {
       setIsBusy(false);
@@ -630,7 +636,7 @@ function AdminDashboard() {
       resetEditor();
       setStatus({
         type: "success",
-        message: `${config.label} record ${editingId ? "updated" : "created"} successfully.`
+        message: `${config.singularLabel || config.label} ${editingId ? "updated" : "created"} successfully.`
       });
     } catch (error) {
       setStatus({ type: "error", message: error.message || "Unable to save record." });
@@ -694,7 +700,7 @@ function AdminDashboard() {
       await config.delete(token, record._id);
       await loadDashboard();
       resetEditor();
-      setStatus({ type: "success", message: `${config.label} record deleted.` });
+      setStatus({ type: "success", message: `${config.singularLabel || config.label} deleted.` });
     } catch (error) {
       setStatus({ type: "error", message: error.message || "Unable to delete record." });
     } finally {
@@ -756,7 +762,7 @@ function AdminDashboard() {
 
     if (field.type === "textarea") {
       return (
-        <label className="admin-field" key={field.name}>
+        <label className={`admin-field ${field.wide ? "wide" : ""}`} key={field.name}>
           <span>{field.label}</span>
           <textarea
             value={formData[field.name] || ""}
@@ -768,7 +774,7 @@ function AdminDashboard() {
     }
 
     return (
-      <label className="admin-field" key={field.name}>
+      <label className={`admin-field ${field.wide ? "wide" : ""}`} key={field.name}>
         <span>{field.label}</span>
         <input
           type={field.type}
@@ -830,10 +836,10 @@ function AdminDashboard() {
       <div className="cms-screen admin-panel">
         <div className="cms-top">
           <div>
-            <strong>Sadhana CMS Admin</strong>
-            <span>Secure sign-in for school staff content updates</span>
+            <strong>Sadhana Staff Portal</strong>
+            <span>Secure access for authorised school staff</span>
           </div>
-          <span className="cms-pill">Protected</span>
+          <span className="cms-pill">Staff Only</span>
         </div>
 
         <form className="admin-login" onSubmit={handleLogin}>
@@ -870,8 +876,8 @@ function AdminDashboard() {
     <div className="cms-screen admin-panel">
       <div className="cms-top">
         <div>
-          <strong>Sadhana CMS Admin</strong>
-          <span>Manage public notices, events, staff, programs and admission enquiries</span>
+          <strong>Sadhana Staff Portal</strong>
+          <span>Manage verified school information, notices, events and admissions follow-up</span>
         </div>
         <div className="cms-actions">
           <button className="cms-action" type="button" onClick={() => loadDashboard()} disabled={isBusy}>
@@ -883,7 +889,7 @@ function AdminDashboard() {
         </div>
       </div>
 
-      <div className="admin-summary" aria-label="Admin record counts">
+      <div className="admin-summary" aria-label="Staff portal record counts">
         <span>Website <b>{dashboardCounts.siteContent}</b></span>
         <span>Notices <b>{dashboardCounts.announcements}</b></span>
         <span>Events <b>{dashboardCounts.events}</b></span>
@@ -892,7 +898,7 @@ function AdminDashboard() {
         <span>Enquiries <b>{dashboardCounts.inquiries}</b></span>
       </div>
 
-      <div className="admin-tabs" role="tablist" aria-label="CMS sections">
+      <div className="admin-tabs" role="tablist" aria-label="Staff portal sections">
         <button
           type="button"
           className={isSiteEditor ? "active" : ""}
@@ -932,7 +938,7 @@ function AdminDashboard() {
         <div className="admin-workspace">
           <form className="admin-editor" onSubmit={handleSubmitRecord}>
             <div className="admin-editor-head">
-              <strong>{editingId ? `Edit ${config.label}` : `New ${config.label}`}</strong>
+              <strong>{editingId ? `Edit ${config.singularLabel || config.label}` : `New ${config.singularLabel || config.label}`}</strong>
               {editingId ? (
                 <button type="button" className="text-button" onClick={() => resetEditor()}>
                   New Record
@@ -971,7 +977,7 @@ function AdminDashboard() {
                 </article>
               ))
             ) : (
-              <div className="admin-empty">No {config.label.toLowerCase()} records have been added yet.</div>
+              <div className="admin-empty">No {getRecordLabel(config)} records have been added yet.</div>
             )}
           </div>
         </div>

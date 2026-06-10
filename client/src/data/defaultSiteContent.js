@@ -50,7 +50,7 @@ export const defaultSiteContent = {
     attribution: "Principal's Message",
     kicker: "About Sadhana",
     title: "A calm, disciplined school for growing students with care.",
-    body: "Sadhana is presented as a trusted school for rural and semi-urban families: simple admission information, clear academic positioning, facility highlights, events, notices, gallery and a staff-friendly content update model.",
+    body: "Sadhana serves families who want dependable academics, clear communication, disciplined routines and a caring school environment close to home.",
     values: [
       { label: "01", title: "Strong Basics", body: "Concept clarity, daily revision and steady academic habits from the early years." },
       { label: "02", title: "Parent Trust", body: "Clear communication, simple admission process and visible student progress." },
@@ -60,12 +60,12 @@ export const defaultSiteContent = {
   academics: {
     kicker: "Academics",
     title: "Structured learning for every stage of school life.",
-    body: "Academic program details are published from the school dashboard after they are verified by the office team."
+    body: "Class-wise learning, regular practice and clear academic guidance help parents understand how children are supported at each stage."
   },
   facilities: {
     kicker: "Facilities",
     title: "A school environment made for learning, safety and routine.",
-    body: "Facilities listed here should reflect verified campus services and can be refined after the school office confirms the final list.",
+    body: "Campus facilities are planned around everyday learning, student safety, healthy routines and the confidence children need beyond the classroom.",
     items: [
       { title: "Smart Classrooms", description: "Clean, organized spaces for daily teaching and interactive lessons." },
       { title: "Library & Reading", description: "Reading culture, story sessions and language growth for young learners." },
@@ -78,7 +78,7 @@ export const defaultSiteContent = {
   admissions: {
     kicker: "Admissions",
     title: "Make the school decision simple for parents.",
-    body: "Parents should immediately understand what Sadhana offers: serious study near home, feasible fee planning, values and regular academic follow-up.",
+    body: "Families can enquire, visit the campus, understand the fee structure and receive clear guidance for the right class before admission confirmation.",
     primaryActionLabel: "Book Campus Visit",
     secondaryActionLabel: "View Updates",
     steps: [
@@ -91,24 +91,24 @@ export const defaultSiteContent = {
   updates: {
     kicker: "Events & Notices",
     title: "Latest school updates in one clear place.",
-    body: "Staff can update announcements, events, notices and admission updates from the protected admin panel.",
+    body: "Parents can follow official notices, upcoming events, admission information and important school updates in one reliable place.",
     noticeBoardTitle: "Notice Board"
   },
   gallery: {
     kicker: "Gallery",
-    title: "Show parents the real life of the school.",
-    body: "Official school images can be published here after the school office reviews and approves them.",
+    title: "Moments from everyday school life.",
+    body: "Photos from classrooms, celebrations, activities and campus life help families see the learning environment children experience every day.",
     items: []
   },
   adminCopy: {
-    kicker: "CMS Plan",
-    title: "Staff should update the website without calling a developer.",
-    body: "This protected dashboard connects directly to the MERN API for verified notices, events, faculty profiles, academic programs and admission enquiries."
+    kicker: "School Office",
+    title: "Verified information, maintained with care.",
+    body: "The school team keeps notices, events, admissions follow-up, faculty details and academic information organized so families can rely on what is published here."
   },
   contact: {
     kicker: "Contact",
     title: "Speak to Sadhana School admissions.",
-    body: "Use this section for phone number, WhatsApp, address, map link and office timings. The enquiry form is designed for parent leads.",
+    body: "For admissions, campus visits and general school enquiries, parents can contact the school office or submit the enquiry form below.",
     campus: "",
     phoneDisplay: "",
     phoneTel: "",
@@ -122,6 +122,58 @@ export const defaultSiteContent = {
 
 const isPlainObject = (value) =>
   Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+const legacyTextReplacements = new Map([
+  [
+    "Sadhana is presented as a trusted school for rural and semi-urban families: simple admission information, clear academic positioning, facility highlights, events, notices, gallery and a staff-friendly content update model.",
+    defaultSiteContent.about.body
+  ],
+  [
+    "Academic program details are published from the school dashboard after they are verified by the office team.",
+    defaultSiteContent.academics.body
+  ],
+  [
+    "Facilities listed here should reflect verified campus services and can be refined after the school office confirms the final list.",
+    defaultSiteContent.facilities.body
+  ],
+  [
+    "Parents should immediately understand what Sadhana offers: serious study near home, feasible fee planning, values and regular academic follow-up.",
+    defaultSiteContent.admissions.body
+  ],
+  [
+    "Staff can update announcements, events, notices and admission updates from the protected admin panel.",
+    defaultSiteContent.updates.body
+  ],
+  [
+    "Show parents the real life of the school.",
+    defaultSiteContent.gallery.title
+  ],
+  [
+    "Official school images can be published here after the school office reviews and approves them.",
+    defaultSiteContent.gallery.body
+  ],
+  ["CMS Plan", defaultSiteContent.adminCopy.kicker],
+  [
+    "Staff should update the website without calling a developer.",
+    defaultSiteContent.adminCopy.title
+  ],
+  [
+    "This protected dashboard connects directly to the MERN API for verified notices, events, faculty profiles, academic programs and admission enquiries.",
+    defaultSiteContent.adminCopy.body
+  ],
+  [
+    "Use this section for phone number, WhatsApp, address, map link and office timings. The enquiry form is designed for parent leads.",
+    defaultSiteContent.contact.body
+  ]
+]);
+
+const normalizeLegacyText = (value) => {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  return legacyTextReplacements.get(value.trim()) || value;
+};
 
 export const mergeSiteContent = (defaults, overrides) => {
   if (!isPlainObject(overrides)) {
@@ -141,7 +193,7 @@ export const mergeSiteContent = (defaults, overrides) => {
       return merged;
     }
 
-    merged[key] = overrideValue ?? defaultValue;
+    merged[key] = normalizeLegacyText(overrideValue) ?? defaultValue;
     return merged;
   }, {});
 };
