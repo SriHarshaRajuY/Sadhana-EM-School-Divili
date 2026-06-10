@@ -1,8 +1,26 @@
+const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");
 
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-dotenv.config({ path: path.resolve(__dirname, "../../.env"), override: true });
+const loadEnvFile = (filePath, { override = false } = {}) => {
+  if (!fs.existsSync(filePath)) {
+    return;
+  }
+
+  const parsed = dotenv.parse(fs.readFileSync(filePath));
+  Object.entries(parsed).forEach(([key, value]) => {
+    if (value === "") {
+      return;
+    }
+
+    if (override || process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  });
+};
+
+loadEnvFile(path.resolve(__dirname, "../../../.env"));
+loadEnvFile(path.resolve(__dirname, "../../.env"), { override: true });
 
 const parseList = (value, fallback) => {
   if (!value) {

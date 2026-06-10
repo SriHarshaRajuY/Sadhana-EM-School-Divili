@@ -112,11 +112,12 @@ The public page includes a protected `#admin` dashboard. Staff can sign in with 
 ## Production Build
 
 ```bash
+npm run check:deploy
 npm run build
 npm run start
 ```
 
-`npm run build` creates `client/dist`. The Express server serves that production React build when it exists, while keeping all API routes under `/api`.
+`npm run check:deploy` validates required production environment variables without printing secrets. `npm run build` creates `client/dist`. The Express server serves that production React build when it exists, while keeping all API routes under `/api`.
 
 ## API Endpoints
 
@@ -186,8 +187,9 @@ For a standard Node host:
 
 1. Set `NODE_ENV=production`, `MONGODB_URI`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, `ADMIN_TOKEN_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `PORT`, and `CORS_ORIGIN`.
 2. Run `npm install`.
-3. Run `npm run build`.
-4. Run `npm run start`.
+3. Run `npm run check:deploy`.
+4. Run `npm run build`.
+5. Run `npm run start`.
 
 For Docker:
 
