@@ -709,6 +709,25 @@ function AdminDashboard() {
     setStatus((current) => (current.type === "error" ? { type: "", message: "" } : current));
   };
 
+  const draftFromRecordForm = (formElement) => {
+    const nextDraft = { ...formData };
+
+    config.fields.forEach((field) => {
+      if (field.type === "image") {
+        return;
+      }
+
+      const element = formElement.elements.namedItem(field.name);
+      if (!element) {
+        return;
+      }
+
+      nextDraft[field.name] = field.type === "checkbox" ? Boolean(element.checked) : element.value;
+    });
+
+    return nextDraft;
+  };
+
   const handleImageRemove = (fieldName) => {
     const publicIdField = fieldName === "photoUrl" ? "photoPublicId" : "imagePublicId";
 
@@ -720,13 +739,13 @@ function AdminDashboard() {
     setStatus((current) => (current.type === "error" ? { type: "", message: "" } : current));
   };
 
-  const validateRecordDraft = () => {
+  const validateRecordDraft = (draft = formData) => {
     const missingFields = config.fields.filter((field) => {
       if (!field.required || field.type === "checkbox") {
         return false;
       }
 
-      return !String(formData[field.name] ?? "").trim();
+      return !String(draft[field.name] ?? "").trim();
     });
 
     if (missingFields.length) {
@@ -734,18 +753,18 @@ function AdminDashboard() {
       return missingFields.length === 1 ? `${fieldNames} is required.` : `${fieldNames} are required.`;
     }
 
-    if (activeResource === "events" && formData.startsAt && formData.endsAt) {
-      const startsAt = new Date(formData.startsAt);
-      const endsAt = new Date(formData.endsAt);
+    if (activeResource === "events" && draft.startsAt && draft.endsAt) {
+      const startsAt = new Date(draft.startsAt);
+      const endsAt = new Date(draft.endsAt);
 
       if (!Number.isNaN(startsAt.getTime()) && !Number.isNaN(endsAt.getTime()) && endsAt <= startsAt) {
         return "End Date must be after Start Date.";
       }
     }
 
-    if (activeResource === "announcements" && formData.publishedAt && formData.expiresAt) {
-      const publishedAt = new Date(formData.publishedAt);
-      const expiresAt = new Date(formData.expiresAt);
+    if (activeResource === "announcements" && draft.publishedAt && draft.expiresAt) {
+      const publishedAt = new Date(draft.publishedAt);
+      const expiresAt = new Date(draft.expiresAt);
 
       if (
         !Number.isNaN(publishedAt.getTime()) &&
@@ -759,8 +778,8 @@ function AdminDashboard() {
     return "";
   };
 
-  const payloadForResource = () => {
-    const payload = { ...formData };
+  const payloadForResource = (draft = formData) => {
+    const payload = { ...draft };
 
     if (activeResource === "announcements") {
       payload.priority = Number(payload.priority || 0);
@@ -789,7 +808,10 @@ function AdminDashboard() {
   const handleSubmitRecord = async (event) => {
     event.preventDefault();
 
-    const validationMessage = validateRecordDraft();
+    const draft = draftFromRecordForm(event.currentTarget);
+    setFormData(draft);
+
+    const validationMessage = validateRecordDraft(draft);
     if (validationMessage) {
       setStatus({ type: "error", message: validationMessage });
       event.currentTarget.reportValidity?.();
@@ -800,7 +822,7 @@ function AdminDashboard() {
     setStatus({ type: "", message: "" });
 
     try {
-      const payload = payloadForResource();
+      const payload = payloadForResource(draft);
       if (editingId) {
         await config.update(token, editingId, payload);
       } else {
@@ -936,6 +958,7 @@ function AdminDashboard() {
       return (
         <label className="admin-check" key={field.name}>
           <input
+            name={field.name}
             type="checkbox"
             checked={Boolean(formData[field.name])}
             onChange={(event) => handleFieldChange(field.name, event.target.checked)}
@@ -950,6 +973,7 @@ function AdminDashboard() {
         <label className={`admin-field ${field.wide ? "wide" : ""}`} key={field.name}>
           <span>{label}</span>
           <textarea
+            name={field.name}
             value={formData[field.name] || ""}
             required={field.required}
             onChange={(event) => handleFieldChange(field.name, event.target.value)}
@@ -988,6 +1012,7 @@ function AdminDashboard() {
       <label className={`admin-field ${field.wide ? "wide" : ""}`} key={field.name}>
         <span>{label}</span>
         <input
+          name={field.name}
           type={field.type}
           value={formData[field.name] || ""}
           required={field.required}
@@ -1135,7 +1160,11 @@ function AdminDashboard() {
         </form>
       ) : (
         <div className="admin-workspace">
-          <form className="admin-editor" onSubmit={handleSubmitRecord}>
+          <form
+            className="admin-editor"
+            onSubmit={handleSubmitRecord}
+            onInput={() => setStatus((current) => (current.type === "error" ? { type: "", message: "" } : current))}
+          >
             <div className="admin-editor-head">
               <strong>{editingId ? `Edit ${config.singularLabel || config.label}` : `New ${config.singularLabel || config.label}`}</strong>
               {editingId ? (
