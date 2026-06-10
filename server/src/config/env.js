@@ -38,6 +38,11 @@ const env = {
   AUTH_RATE_LIMIT_MAX: parseNumber(process.env.AUTH_RATE_LIMIT_MAX, 10),
   INQUIRY_RATE_LIMIT_WINDOW_MS: parseNumber(process.env.INQUIRY_RATE_LIMIT_WINDOW_MS, 60 * 60 * 1000),
   INQUIRY_RATE_LIMIT_MAX: parseNumber(process.env.INQUIRY_RATE_LIMIT_MAX, 20),
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || "",
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || "",
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || "",
+  CLOUDINARY_FOLDER: process.env.CLOUDINARY_FOLDER || "sadhana-school",
+  CLOUDINARY_UPLOAD_MAX_BYTES: parseNumber(process.env.CLOUDINARY_UPLOAD_MAX_BYTES, 5 * 1024 * 1024),
   TRUST_PROXY: process.env.TRUST_PROXY === "true"
 };
 
@@ -55,6 +60,13 @@ if (env.NODE_ENV === "production" && !env.ADMIN_PASSWORD_HASH) {
 
 if (env.NODE_ENV === "production" && !env.ADMIN_TOKEN_SECRET) {
   throw new Error("ADMIN_TOKEN_SECRET is required in production.");
+}
+
+if (
+  env.NODE_ENV === "production" &&
+  (!env.CLOUDINARY_CLOUD_NAME || !env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET)
+) {
+  throw new Error("Cloudinary credentials are required in production.");
 }
 
 module.exports = env;

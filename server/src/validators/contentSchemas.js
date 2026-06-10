@@ -82,6 +82,7 @@ const eventBaseSchema = z.object({
   location: optionalString(180),
   category: optionalString(80),
   imageUrl: optionalUrl,
+  imagePublicId: optionalString(220),
   isPublished: requestBoolean(true)
 }).strict();
 
@@ -107,6 +108,7 @@ const facultyCreateSchema = z.object({
   email: optionalEmail,
   phone: optionalString(40),
   photoUrl: optionalUrl,
+  photoPublicId: optionalString(220),
   order: z.coerce.number().int().min(0).default(0),
   isActive: requestBoolean(true)
 }).strict();
@@ -157,6 +159,7 @@ const imagePanelSchema = z.object({
   title: optionalString(180),
   description: optionalString(500),
   imageUrl: optionalUrl,
+  imagePublicId: optionalString(220),
   isPublished: requestBoolean(true)
 }).strict();
 

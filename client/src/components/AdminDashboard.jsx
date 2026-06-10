@@ -46,6 +46,7 @@ const RESOURCE_CONFIG = {
       location: "",
       category: "",
       imageUrl: "",
+      imagePublicId: "",
       isPublished: true
     },
     fields: [
@@ -75,6 +76,7 @@ const RESOURCE_CONFIG = {
       email: "",
       phone: "",
       photoUrl: "",
+      photoPublicId: "",
       order: 0,
       isActive: true
     },
@@ -141,7 +143,7 @@ const SITE_FIELD_GROUPS = [
       { path: "hero.copy", label: "Hero Copy", type: "textarea" },
       { path: "hero.primaryActionLabel", label: "Primary Button", type: "text" },
       { path: "hero.secondaryActionLabel", label: "Secondary Button", type: "text" },
-      { path: "hero.panels", label: "Hero Panels", type: "textarea" }
+      { path: "hero.panels", label: "Hero Panels", type: "textarea", uploadContext: "hero" }
     ]
   },
   {
@@ -188,7 +190,7 @@ const SITE_FIELD_GROUPS = [
       { path: "gallery.kicker", label: "Gallery Kicker", type: "text" },
       { path: "gallery.title", label: "Gallery Title", type: "textarea" },
       { path: "gallery.body", label: "Gallery Body", type: "textarea" },
-      { path: "gallery.items", label: "Gallery Items", type: "textarea" },
+      { path: "gallery.items", label: "Gallery Items", type: "textarea", uploadContext: "gallery" },
       { path: "adminCopy.kicker", label: "CMS Kicker", type: "text" },
       { path: "adminCopy.title", label: "CMS Title", type: "textarea" },
       { path: "adminCopy.body", label: "CMS Body", type: "textarea" }
@@ -312,7 +314,7 @@ const flattenSiteContent = (content) => {
     }
 
     if (field.path === "hero.panels") {
-      draft[field.path] = joinRecords(value, ["variant", "title", "description", "imageUrl"]);
+      draft[field.path] = joinRecords(value, ["variant", "title", "description", "imageUrl", "imagePublicId"]);
       return;
     }
 
@@ -322,7 +324,7 @@ const flattenSiteContent = (content) => {
     }
 
     if (field.path === "gallery.items") {
-      draft[field.path] = joinRecords(value, ["variant", "title", "description", "imageUrl"]);
+      draft[field.path] = joinRecords(value, ["variant", "title", "description", "imageUrl", "imagePublicId"]);
       return;
     }
 
@@ -357,7 +359,7 @@ const buildSiteContentFromDraft = (draft) => {
       setByPath(
         content,
         field.path,
-        parseRecords(value, ["variant", "title", "description", "imageUrl"]).map((item) => ({
+        parseRecords(value, ["variant", "title", "description", "imageUrl", "imagePublicId"]).map((item) => ({
           ...item,
           isPublished: true
         }))
@@ -399,6 +401,7 @@ function AdminDashboard() {
   const [loginData, setLoginData] = useState({ username: "", password: "" });
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isBusy, setIsBusy] = useState(false);
+  const [uploadingKey, setUploadingKey] = useState("");
 
   const config = RESOURCE_CONFIG[activeResource];
   const isSiteEditor = activeResource === "siteContent";
@@ -509,6 +512,54 @@ function AdminDashboard() {
 
   const handleSiteFieldChange = (path, value) => {
     setSiteDraft((current) => ({ ...current, [path]: value }));
+  };
+
+  const handleRecordImageUpload = async (fieldName, file) => {
+    if (!file) {
+      return;
+    }
+
+    const key = `${activeResource}.${fieldName}`;
+    setUploadingKey(key);
+    setStatus({ type: "", message: "" });
+
+    try {
+      const image = await schoolApi.uploadImage(token, file, activeResource);
+      const publicIdField = fieldName === "photoUrl" ? "photoPublicId" : "imagePublicId";
+      setFormData((current) => ({
+        ...current,
+        [fieldName]: image.secureUrl,
+        [publicIdField]: image.publicId
+      }));
+      setStatus({ type: "success", message: "Image uploaded successfully." });
+    } catch (error) {
+      setStatus({ type: "error", message: error.message || "Unable to upload image." });
+    } finally {
+      setUploadingKey("");
+    }
+  };
+
+  const handleSiteImageUpload = async (field, file) => {
+    if (!file) {
+      return;
+    }
+
+    setUploadingKey(field.path);
+    setStatus({ type: "", message: "" });
+
+    try {
+      const image = await schoolApi.uploadImage(token, file, field.uploadContext || "site-content");
+      const nextLine = `${field.uploadContext === "gallery" ? "" : "classroom"} | ${file.name.replace(/\.[^.]+$/, "")} | Add caption here | ${image.secureUrl} | ${image.publicId}`;
+      setSiteDraft((current) => ({
+        ...current,
+        [field.path]: [current[field.path], nextLine].filter(Boolean).join("\n")
+      }));
+      setStatus({ type: "success", message: "Image uploaded and added to the website editor." });
+    } catch (error) {
+      setStatus({ type: "error", message: error.message || "Unable to upload image." });
+    } finally {
+      setUploadingKey("");
+    }
   };
 
   const handleSiteContentSubmit = async (event) => {
@@ -725,6 +776,19 @@ function AdminDashboard() {
           required={field.required}
           onChange={(event) => handleFieldChange(field.name, event.target.value)}
         />
+        {field.type === "url" && /image|photo/i.test(field.name) ? (
+          <div className="admin-upload">
+            {formData[field.name] ? (
+              <img src={formData[field.name]} alt={`${field.label} preview`} />
+            ) : null}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={(event) => handleRecordImageUpload(field.name, event.target.files?.[0])}
+            />
+            <small>{uploadingKey === `${activeResource}.${field.name}` ? "Uploading..." : "Upload to Cloudinary"}</small>
+          </div>
+        ) : null}
       </label>
     );
   };
@@ -744,6 +808,20 @@ function AdminDashboard() {
           onChange={(event) => handleSiteFieldChange(field.path, event.target.value)}
         />
       )}
+      {field.uploadContext ? (
+        <div className="admin-upload inline-upload">
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            onChange={(event) => handleSiteImageUpload(field, event.target.files?.[0])}
+          />
+          <small>
+            {uploadingKey === field.path
+              ? "Uploading..."
+              : "Upload image to Cloudinary and append a new line. Format: variant | title | caption | image URL | public ID"}
+          </small>
+        </div>
+      ) : null}
     </label>
   );
 

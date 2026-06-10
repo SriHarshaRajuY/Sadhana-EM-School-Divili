@@ -9,6 +9,7 @@ const facultyRoutes = require("./facultyRoutes");
 const inquiriesRoutes = require("./inquiriesRoutes");
 const programsRoutes = require("./programsRoutes");
 const siteContentRoutes = require("./siteContentRoutes");
+const uploadsRoutes = require("./uploadsRoutes");
 
 const router = express.Router();
 
@@ -33,5 +34,6 @@ router.use("/faculty", facultyRoutes);
 router.use("/inquiries", inquiriesRoutes);
 router.use("/programs", programsRoutes);
 router.use("/site-content", siteContentRoutes);
+router.use("/uploads", uploadsRoutes);
 
 module.exports = router;

@@ -1184,6 +1184,40 @@
       padding: 10px 12px;
     }
 
+    .admin-upload {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px dashed rgba(33, 79, 154, 0.22);
+      border-radius: var(--radius);
+      background: rgba(33, 79, 154, 0.04);
+    }
+
+    .admin-upload img {
+      width: 100%;
+      max-height: 160px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      border: 1px solid rgba(21, 32, 51, 0.12);
+      background: var(--white);
+    }
+
+    .admin-upload input[type="file"] {
+      min-height: auto;
+      padding: 8px;
+      background: var(--white);
+    }
+
+    .admin-upload small {
+      color: var(--muted);
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .inline-upload {
+      margin-top: 8px;
+    }
+
     .admin-field textarea {
       min-height: 92px;
       resize: vertical;

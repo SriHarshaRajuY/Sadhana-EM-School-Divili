@@ -11,6 +11,7 @@ The school logo is served from `client/public/school-logo.jpeg` and is used in t
 - React + Vite frontend in `client/`
 - Express + Node API in `server/`
 - MongoDB with Mongoose models
+- Cloudinary-backed image uploads for admin-managed media
 - RESTful routes for announcements, events, faculty, programs, and admission inquiries
 - Helmet, CORS, public/API rate limiting, separate login throttling, validation, centralized errors, and environment configuration
 - Protected staff dashboard for managing live school content, website page copy, contact details, gallery items, and enquiry follow-up
@@ -64,6 +65,11 @@ AUTH_RATE_LIMIT_WINDOW_MS=900000
 AUTH_RATE_LIMIT_MAX=10
 INQUIRY_RATE_LIMIT_WINDOW_MS=3600000
 INQUIRY_RATE_LIMIT_MAX=20
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+CLOUDINARY_FOLDER=sadhana-school
+CLOUDINARY_UPLOAD_MAX_BYTES=5242880
 VITE_API_BASE_URL=
 VITE_SCHOOL_PHONE_DISPLAY=
 VITE_SCHOOL_PHONE_TEL=
@@ -75,7 +81,7 @@ VITE_SCHOOL_OFFICE_HOURS=
 
 The application does not ship seed/demo school records. If MongoDB is connected but empty, public content APIs return empty arrays and the frontend shows neutral empty states until real school content is added. If MongoDB is unavailable, database-backed APIs return a clear service-unavailable error instead of pretending a parent enquiry or staff update succeeded.
 
-In production, `MONGODB_URI`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, and `ADMIN_TOKEN_SECRET` are required.
+In production, `MONGODB_URI`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, `ADMIN_TOKEN_SECRET`, and the Cloudinary credentials are required.
 
 ## Install and Run
 
@@ -101,7 +107,7 @@ npm run hash:password -- "your strong staff password"
 
 Put the generated value in `ADMIN_PASSWORD_HASH`. Do not store plaintext staff passwords in `.env`.
 
-The public page includes a protected `#admin` dashboard. Staff can sign in with the configured admin credentials to update the public website shell, contact details, hero/about/admissions/facility/gallery copy, create/edit/publish/hide/delete announcements, events, faculty profiles, and academic programs, and manage admission enquiry status, notes, and deletion.
+The public page includes a protected `#admin` dashboard. Staff can sign in with the configured admin credentials to update the public website shell, contact details, hero/about/admissions/facility/gallery copy, upload Cloudinary images, create/edit/publish/hide/delete announcements, events, faculty profiles, and academic programs, and manage admission enquiry status, notes, and deletion.
 
 ## Production Build
 
@@ -146,6 +152,9 @@ DELETE /api/programs/:id
 GET    /api/site-content
 PUT    /api/site-content
 
+POST   /api/uploads/image
+DELETE /api/uploads/image
+
 GET    /api/inquiries
 POST   /api/inquiries
 PATCH  /api/inquiries/:id/status
@@ -160,7 +169,7 @@ GET    /api/admin/inquiries
 
 The current public UI consumes the site-content singleton, announcements, events, programs, faculty metadata, and the inquiry submission endpoint. Faculty data is supported in the API and in the admin dashboard without forcing a public redesign.
 
-Admin write routes and inquiry management routes require a bearer token from `POST /api/auth/login`:
+Admin write routes, image upload routes, and inquiry management routes require a bearer token from `POST /api/auth/login`:
 
 ```text
 Authorization: Bearer <token>
@@ -175,7 +184,7 @@ Public parent-facing routes remain open:
 
 For a standard Node host:
 
-1. Set `NODE_ENV=production`, `MONGODB_URI`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, `ADMIN_TOKEN_SECRET`, `PORT`, and `CORS_ORIGIN`.
+1. Set `NODE_ENV=production`, `MONGODB_URI`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, `ADMIN_TOKEN_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `PORT`, and `CORS_ORIGIN`.
 2. Run `npm install`.
 3. Run `npm run build`.
 4. Run `npm run start`.

@@ -20,6 +20,26 @@ const request = async (path, options = {}) => {
   return payload.data ?? payload;
 };
 
+const requestForm = async (path, formData, options = {}) => {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: options.method || "POST",
+    headers: {
+      ...(options.headers || {})
+    },
+    body: formData
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const error = new Error(payload?.error?.message || "Request failed.");
+    error.details = payload?.error?.details;
+    throw error;
+  }
+
+  return payload.data ?? payload;
+};
+
 const authHeader = (token) => (token ? { Authorization: `Bearer ${token}` } : {});
 
 export const schoolApi = {
@@ -77,6 +97,12 @@ export const schoolApi = {
       method: "DELETE",
       headers: authHeader(token)
     }),
+  deleteUploadedImage: (token, publicId) =>
+    request("/api/uploads/image", {
+      method: "DELETE",
+      headers: authHeader(token),
+      body: JSON.stringify({ publicId })
+    }),
   getAnnouncements: () => request("/api/announcements"),
   getAdminAnnouncements: (token) => request("/api/admin/announcements", { headers: authHeader(token) }),
   getAdminEvents: (token) => request("/api/admin/events", { headers: authHeader(token) }),
@@ -127,5 +153,14 @@ export const schoolApi = {
       method: "PUT",
       headers: authHeader(token),
       body: JSON.stringify(data)
-    })
+    }),
+  uploadImage: (token, file, context = "site-content") => {
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("context", context);
+
+    return requestForm("/api/uploads/image", formData, {
+      headers: authHeader(token)
+    });
+  }
 };

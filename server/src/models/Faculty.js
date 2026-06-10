@@ -43,6 +43,11 @@ const facultySchema = new mongoose.Schema(
       trim: true,
       maxlength: 600
     },
+    photoPublicId: {
+      type: String,
+      trim: true,
+      maxlength: 220
+    },
     order: {
       type: Number,
       default: 0
@@ -61,4 +66,3 @@ const facultySchema = new mongoose.Schema(
 facultySchema.index({ isActive: 1, order: 1, name: 1 });
 
 module.exports = mongoose.model("Faculty", facultySchema);
-

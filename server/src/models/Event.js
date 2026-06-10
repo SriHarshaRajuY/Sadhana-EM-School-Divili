@@ -34,6 +34,11 @@ const eventSchema = new mongoose.Schema(
       trim: true,
       maxlength: 600
     },
+    imagePublicId: {
+      type: String,
+      trim: true,
+      maxlength: 220
+    },
     isPublished: {
       type: Boolean,
       default: true
@@ -48,4 +53,3 @@ const eventSchema = new mongoose.Schema(
 eventSchema.index({ isPublished: 1, startsAt: 1 });
 
 module.exports = mongoose.model("Event", eventSchema);
-

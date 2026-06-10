@@ -28,6 +28,7 @@ const imagePanelSchema = new mongoose.Schema(
     title: { type: String, trim: true, maxlength: 180 },
     description: { type: String, trim: true, maxlength: 500 },
     imageUrl: { type: String, trim: true, maxlength: 600 },
+    imagePublicId: { type: String, trim: true, maxlength: 220 },
     isPublished: { type: Boolean, default: true }
   },
   { _id: false }

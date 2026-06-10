@@ -30,7 +30,23 @@ const corsOptions = {
 
 app.use(
   helmet({
-    contentSecurityPolicy: env.NODE_ENV === "production" ? undefined : false,
+    contentSecurityPolicy:
+      env.NODE_ENV === "production"
+        ? {
+            directives: {
+              defaultSrc: ["'self'"],
+              baseUri: ["'self'"],
+              fontSrc: ["'self'", "https:", "data:"],
+              formAction: ["'self'"],
+              frameAncestors: ["'self'"],
+              imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+              objectSrc: ["'none'"],
+              scriptSrc: ["'self'"],
+              styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+              connectSrc: ["'self'"]
+            }
+          }
+        : false,
     crossOriginResourcePolicy: { policy: "cross-origin" }
   })
 );
