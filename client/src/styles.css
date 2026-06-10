@@ -469,6 +469,7 @@
       .section-head,
       .value,
       .program,
+      .faculty-card,
       .facility,
       .event,
       .contact-card,
@@ -527,6 +528,21 @@
     }
 
     .section-head p {
+      color: var(--muted);
+      font-size: 1.02rem;
+    }
+
+    .subsection-head {
+      display: grid;
+      grid-template-columns: minmax(0, 0.78fr) minmax(260px, 0.48fr);
+      gap: 34px;
+      align-items: end;
+      margin: 54px 0 24px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .subsection-head p {
       color: var(--muted);
       font-size: 1.02rem;
     }
@@ -674,11 +690,162 @@
       font-size: 0.94rem;
     }
 
+    .program-grades {
+      display: inline-flex;
+      width: fit-content;
+      margin-top: 10px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      color: var(--primary);
+      background: rgba(33, 79, 154, 0.08);
+      font-size: 0.78rem;
+      font-weight: 900;
+    }
+
     .program small {
       color: var(--primary);
       font-weight: 900;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+    }
+
+    .program > a {
+      width: fit-content;
+      margin-top: 18px;
+      color: var(--primary);
+      font-size: 0.86rem;
+      font-weight: 900;
+      border-bottom: 2px solid rgba(244, 182, 64, 0.86);
+    }
+
+    .program-highlights {
+      display: grid;
+      gap: 6px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .program-highlights li {
+      position: relative;
+      padding-left: 16px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .program-highlights li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    .section-actions {
+      display: flex;
+      justify-content: center;
+      margin-top: 22px;
+    }
+
+    .view-more {
+      min-height: 42px;
+      border: 1px solid rgba(33, 79, 154, 0.2);
+      border-radius: 999px;
+      background: var(--white);
+      color: var(--primary);
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.86rem;
+      font-weight: 900;
+      padding: 10px 16px;
+      transition: transform 180ms var(--ease), box-shadow 180ms var(--ease), border-color 180ms var(--ease);
+    }
+
+    .view-more:hover,
+    .view-more:focus-visible {
+      transform: translateY(-2px);
+      border-color: rgba(33, 79, 154, 0.36);
+      box-shadow: 0 14px 30px rgba(23, 48, 95, 0.1);
+      outline: none;
+    }
+
+    .faculty-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .faculty-card {
+      min-height: 280px;
+      padding: 22px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--white);
+      display: flex;
+      flex-direction: column;
+      transition: transform 220ms var(--ease), border-color 220ms var(--ease), box-shadow 220ms var(--ease);
+    }
+
+    .faculty-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(33, 79, 154, 0.26);
+      box-shadow: 0 20px 46px rgba(23, 48, 95, 0.1);
+    }
+
+    .faculty-photo {
+      width: 78px;
+      height: 78px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 50%;
+      border: 1px solid rgba(33, 79, 154, 0.16);
+      background:
+        linear-gradient(135deg, rgba(33, 79, 154, 0.1), rgba(244, 182, 64, 0.2)),
+        var(--paper);
+      color: var(--primary);
+      font-weight: 900;
+      font-size: 1.1rem;
+    }
+
+    .faculty-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .faculty-card small {
+      margin-top: 16px;
+      color: var(--primary);
+      font-size: 0.76rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .faculty-card h3 {
+      margin-top: 8px;
+      font-size: 1.08rem;
+    }
+
+    .faculty-card strong {
+      margin-top: 4px;
+      color: var(--ink);
+      font-size: 0.92rem;
+    }
+
+    .faculty-card p {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .faculty-qualifications {
+      color: var(--primary) !important;
+      font-weight: 800;
     }
 
     .empty-state {
@@ -816,6 +983,11 @@
       align-items: start;
     }
 
+    .event-column {
+      display: grid;
+      gap: 16px;
+    }
+
     .event-list {
       display: grid;
       gap: 14px;
@@ -831,6 +1003,10 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       transition: transform 220ms var(--ease), border-color 220ms var(--ease), box-shadow 220ms var(--ease);
+    }
+
+    .event.with-media {
+      grid-template-columns: 88px minmax(0, 1fr) 132px;
     }
 
     .event:hover {
@@ -862,10 +1038,29 @@
       font-size: 1.04rem;
     }
 
+    .event-meta {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--primary);
+      font-size: 0.76rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
     .event p {
       margin-top: 5px;
       color: var(--muted);
       font-size: 0.94rem;
+    }
+
+    .event-media {
+      width: 132px;
+      height: 94px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      border: 1px solid rgba(21, 32, 51, 0.12);
+      background: var(--paper);
     }
 
     .notice-board {
@@ -892,6 +1087,19 @@
       position: relative;
       color: #4f5d58;
       font-size: 0.95rem;
+    }
+
+    .notice-board li strong {
+      display: block;
+      color: var(--ink);
+      font-size: 0.95rem;
+    }
+
+    .notice-board li span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.9rem;
     }
 
     .notice-board li::before {
@@ -1559,6 +1767,7 @@
 
       .hero-inner,
       .section-head,
+      .subsection-head,
       .intro-layout,
       .admission-band,
       .notice-layout,
@@ -1573,6 +1782,7 @@
       }
 
       .program-grid,
+      .faculty-grid,
       .stats {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -1686,6 +1896,7 @@
 
       .values,
       .program-grid,
+      .faculty-grid,
       .stats,
       .facility-list,
       .gallery,
@@ -1706,6 +1917,16 @@
 
       .event {
         grid-template-columns: 70px minmax(0, 1fr);
+      }
+
+      .event.with-media {
+        grid-template-columns: 70px minmax(0, 1fr);
+      }
+
+      .event-media {
+        grid-column: 1 / -1;
+        width: 100%;
+        height: 180px;
       }
 
       .footer-inner {
@@ -1751,6 +1972,7 @@
       }
 
       .section-head,
+      .subsection-head,
       .contact-card,
       .form,
       .admission-copy,
@@ -1763,5 +1985,9 @@
         grid-template-columns: 62px minmax(0, 1fr);
         gap: 12px;
         padding: 14px;
+      }
+
+      .event.with-media {
+        grid-template-columns: 62px minmax(0, 1fr);
       }
     }

@@ -203,6 +203,7 @@ const siteContentSchema = z.object({
     values: z.array(valueItemSchema).max(6).optional()
   }).strict().optional(),
   academics: sectionTextSchema.optional(),
+  faculty: sectionTextSchema.optional(),
   facilities: sectionTextSchema.extend({
     items: z.array(facilityItemSchema).max(12).optional()
   }).strict().optional(),

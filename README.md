@@ -169,7 +169,7 @@ GET    /api/admin/programs
 GET    /api/admin/inquiries
 ```
 
-The current public UI consumes the site-content singleton, announcements, events, programs, faculty metadata, and the inquiry submission endpoint. Faculty data is supported in the API and in the admin dashboard without forcing a public redesign.
+The public UI consumes the site-content singleton, announcements, events, programs, faculty profiles, and the inquiry submission endpoint. The homepage shows recent public records first and adds parent-facing "view all" controls when the school publishes more items.
 
 Admin write routes, image upload routes, and inquiry management routes require a bearer token from `POST /api/auth/login`:
 

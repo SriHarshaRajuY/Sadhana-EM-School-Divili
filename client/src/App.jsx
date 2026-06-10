@@ -18,6 +18,11 @@ const initialContent = {
   programs: emptyPrograms
 };
 
+const INITIAL_ANNOUNCEMENT_COUNT = 4;
+const INITIAL_EVENT_COUNT = 2;
+const INITIAL_FACULTY_COUNT = 4;
+const INITIAL_PROGRAM_COUNT = 4;
+
 const normalizeList = (items, fallback) => (Array.isArray(items) && items.length ? items : fallback);
 
 const eventMonthFormatter = new Intl.DateTimeFormat("en-US", {
@@ -43,6 +48,16 @@ const getEventDate = (event) => {
   };
 };
 
+const getEventMeta = (event) => [event.category, event.location].filter(Boolean).join(" | ");
+
+const getInitials = (name = "") =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("") || "SS";
+
 function EmptyState({ title, children }) {
   return (
     <div className="empty-state">
@@ -52,10 +67,30 @@ function EmptyState({ title, children }) {
   );
 }
 
+function ViewMoreButton({ expanded, total, initialCount, onClick, viewLabel, fewerLabel }) {
+  if (total <= initialCount) {
+    return null;
+  }
+
+  return (
+    <div className="section-actions">
+      <button className="view-more" type="button" onClick={onClick}>
+        {expanded ? fewerLabel : `${viewLabel} (${total})`}
+      </button>
+    </div>
+  );
+}
+
 function App() {
   const [content, setContent] = useState(initialContent);
   const [siteContent, setSiteContent] = useState(defaultSiteContent);
   const [contentNotice, setContentNotice] = useState("");
+  const [expandedSections, setExpandedSections] = useState({
+    announcements: false,
+    events: false,
+    faculty: false,
+    programs: false
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -118,12 +153,25 @@ function App() {
   }, []);
 
   const visibleAnnouncements = useMemo(
-    () => content.announcements.slice(0, 4),
-    [content.announcements]
+    () =>
+      expandedSections.announcements
+        ? content.announcements
+        : content.announcements.slice(0, INITIAL_ANNOUNCEMENT_COUNT),
+    [content.announcements, expandedSections.announcements]
   );
 
-  const visibleEvents = useMemo(() => content.events.slice(0, 3), [content.events]);
-  const visiblePrograms = useMemo(() => content.programs.slice(0, 4), [content.programs]);
+  const visibleEvents = useMemo(
+    () => (expandedSections.events ? content.events : content.events.slice(0, INITIAL_EVENT_COUNT)),
+    [content.events, expandedSections.events]
+  );
+  const visibleFaculty = useMemo(
+    () => (expandedSections.faculty ? content.faculty : content.faculty.slice(0, INITIAL_FACULTY_COUNT)),
+    [content.faculty, expandedSections.faculty]
+  );
+  const visiblePrograms = useMemo(
+    () => (expandedSections.programs ? content.programs : content.programs.slice(0, INITIAL_PROGRAM_COUNT)),
+    [content.programs, expandedSections.programs]
+  );
   const contact = siteContent.contact;
   const schoolName = siteContent.school.name;
   const phoneHref = contact.phoneTel ? `tel:${contact.phoneTel}` : siteConfig.phoneHref;
@@ -135,6 +183,13 @@ function App() {
   const classOptions = contact.classOptions?.length ? contact.classOptions : defaultSiteContent.contact.classOptions;
   const heroPanels = (siteContent.hero.panels || []).filter((panel) => panel.isPublished !== false);
   const galleryItems = (siteContent.gallery.items || []).filter((item) => item.isPublished !== false);
+
+  const toggleExpandedSection = (section) => {
+    setExpandedSections((current) => ({
+      ...current,
+      [section]: !current[section]
+    }));
+  };
 
   const handleInquirySubmit = async (event) => {
     event.preventDefault();
@@ -202,6 +257,7 @@ function App() {
           <div className="nav-links">
             <a href="#about">About</a>
             <a href="#academics">Academics</a>
+            <a href="#faculty">Faculty</a>
             <a href="#facilities">Facilities</a>
             <a href="#events">Events</a>
             <a href="#gallery">Gallery</a>
@@ -311,7 +367,15 @@ function App() {
                     <div>
                       <small>{program.stage}</small>
                       <h3>{program.title}</h3>
+                      {program.grades ? <span className="program-grades">{program.grades}</span> : null}
                       <p>{program.description}</p>
+                      {program.highlights?.length ? (
+                        <ul className="program-highlights">
+                          {program.highlights.slice(0, 3).map((highlight) => (
+                            <li key={highlight}>{highlight}</li>
+                          ))}
+                        </ul>
+                      ) : null}
                     </div>
                     <a href="#contact">Enquire</a>
                   </article>
@@ -322,6 +386,59 @@ function App() {
                 </EmptyState>
               )}
             </div>
+
+            <ViewMoreButton
+              expanded={expandedSections.programs}
+              total={content.programs.length}
+              initialCount={INITIAL_PROGRAM_COUNT}
+              onClick={() => toggleExpandedSection("programs")}
+              viewLabel="View all academic programs"
+              fewerLabel="Show fewer programs"
+            />
+
+            <div className="subsection-head" id="faculty">
+              <div>
+                <div className="section-kicker">{siteContent.faculty.kicker}</div>
+                <h2>{siteContent.faculty.title}</h2>
+              </div>
+              <p>{siteContent.faculty.body}</p>
+            </div>
+
+            <div className="faculty-grid">
+              {visibleFaculty.length ? (
+                visibleFaculty.map((member) => (
+                  <article className="faculty-card" key={member._id || member.name}>
+                    <div className="faculty-photo" aria-hidden="true">
+                      {member.photoUrl ? (
+                        <img src={member.photoUrl} alt="" />
+                      ) : (
+                        <span>{getInitials(member.name)}</span>
+                      )}
+                    </div>
+                    <small>{member.department || "School Faculty"}</small>
+                    <h3>{member.name}</h3>
+                    <strong>{member.role}</strong>
+                    {member.qualifications?.length ? (
+                      <p className="faculty-qualifications">{member.qualifications.join(", ")}</p>
+                    ) : null}
+                    {member.bio ? <p>{member.bio}</p> : null}
+                  </article>
+                ))
+              ) : (
+                <EmptyState title="Faculty profiles are not published yet.">
+                  Teacher and staff profiles will appear here after the school team adds them.
+                </EmptyState>
+              )}
+            </div>
+
+            <ViewMoreButton
+              expanded={expandedSections.faculty}
+              total={content.faculty.length}
+              initialCount={INITIAL_FACULTY_COUNT}
+              onClick={() => toggleExpandedSection("faculty")}
+              viewLabel="View all faculty profiles"
+              fewerLabel="Show fewer profiles"
+            />
           </div>
         </section>
 
@@ -386,26 +503,45 @@ function App() {
             </div>
 
             <div className="notice-layout">
-              <div className="event-list">
-                {visibleEvents.length ? (
-                  visibleEvents.map((schoolEvent) => {
-                    const date = getEventDate(schoolEvent);
+              <div className="event-column">
+                <div className="event-list">
+                  {visibleEvents.length ? (
+                    visibleEvents.map((schoolEvent) => {
+                      const date = getEventDate(schoolEvent);
+                      const eventMeta = getEventMeta(schoolEvent);
 
-                    return (
-                      <article className="event" key={schoolEvent._id || schoolEvent.title}>
-                        <div className="date">{date.month} <span>{date.day}</span></div>
-                        <div>
-                          <h3>{schoolEvent.title}</h3>
-                          <p>{schoolEvent.description}</p>
-                        </div>
-                      </article>
-                    );
-                  })
-                ) : (
-                  <EmptyState title="No official events are published yet.">
-                    Confirmed school events will appear here once they are added.
-                  </EmptyState>
-                )}
+                      return (
+                        <article
+                          className={`event ${schoolEvent.imageUrl ? "with-media" : ""}`}
+                          key={schoolEvent._id || schoolEvent.title}
+                        >
+                          <div className="date">{date.month} <span>{date.day}</span></div>
+                          <div>
+                            {eventMeta ? <small className="event-meta">{eventMeta}</small> : null}
+                            <h3>{schoolEvent.title}</h3>
+                            <p>{schoolEvent.description}</p>
+                          </div>
+                          {schoolEvent.imageUrl ? (
+                            <img className="event-media" src={schoolEvent.imageUrl} alt="" />
+                          ) : null}
+                        </article>
+                      );
+                    })
+                  ) : (
+                    <EmptyState title="No official events are published yet.">
+                      Confirmed school events will appear here once they are added.
+                    </EmptyState>
+                  )}
+                </div>
+
+                <ViewMoreButton
+                  expanded={expandedSections.events}
+                  total={content.events.length}
+                  initialCount={INITIAL_EVENT_COUNT}
+                  onClick={() => toggleExpandedSection("events")}
+                  viewLabel="View all events"
+                  fewerLabel="Show fewer events"
+                />
               </div>
 
               <aside className="notice-board">
@@ -413,12 +549,23 @@ function App() {
                 {visibleAnnouncements.length ? (
                   <ul>
                     {visibleAnnouncements.map((announcement) => (
-                      <li key={announcement._id || announcement.title}>{announcement.title}</li>
+                      <li key={announcement._id || announcement.title}>
+                        <strong>{announcement.title}</strong>
+                        {announcement.body ? <span>{announcement.body}</span> : null}
+                      </li>
                     ))}
                   </ul>
                 ) : (
                   <div className="notice-empty">No official notices are published yet.</div>
                 )}
+                <ViewMoreButton
+                  expanded={expandedSections.announcements}
+                  total={content.announcements.length}
+                  initialCount={INITIAL_ANNOUNCEMENT_COUNT}
+                  onClick={() => toggleExpandedSection("announcements")}
+                  viewLabel="View all notices"
+                  fewerLabel="Show fewer notices"
+                />
               </aside>
             </div>
           </div>

@@ -41,6 +41,7 @@ const requestForm = async (path, formData, options = {}) => {
 };
 
 const authHeader = (token) => (token ? { Authorization: `Bearer ${token}` } : {});
+const publicListPath = (path) => `${path}?limit=100`;
 
 export const schoolApi = {
   adminLogin: (data) =>
@@ -103,15 +104,15 @@ export const schoolApi = {
       headers: authHeader(token),
       body: JSON.stringify({ publicId })
     }),
-  getAnnouncements: () => request("/api/announcements"),
+  getAnnouncements: () => request(publicListPath("/api/announcements")),
   getAdminAnnouncements: (token) => request("/api/admin/announcements", { headers: authHeader(token) }),
   getAdminEvents: (token) => request("/api/admin/events", { headers: authHeader(token) }),
   getAdminFaculty: (token) => request("/api/admin/faculty", { headers: authHeader(token) }),
   getAdminInquiries: (token) => request("/api/admin/inquiries", { headers: authHeader(token) }),
   getAdminPrograms: (token) => request("/api/admin/programs", { headers: authHeader(token) }),
-  getEvents: () => request("/api/events"),
-  getFaculty: () => request("/api/faculty"),
-  getPrograms: () => request("/api/programs"),
+  getEvents: () => request(publicListPath("/api/events")),
+  getFaculty: () => request(publicListPath("/api/faculty")),
+  getPrograms: () => request(publicListPath("/api/programs")),
   getSiteContent: () => request("/api/site-content"),
   submitInquiry: (data) =>
     request("/api/inquiries", {

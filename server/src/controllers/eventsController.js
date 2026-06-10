@@ -8,23 +8,13 @@ const {
   updateContent
 } = require("../services/contentService");
 
-const upcomingEventFilter = () => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  return {
-    isPublished: true,
-    $or: [{ startsAt: { $gte: today } }, { endsAt: { $gte: new Date() } }]
-  };
-};
-
 const publicEventFilter = { isPublished: true };
-const eventSort = { startsAt: 1, createdAt: -1 };
+const eventSort = { startsAt: -1, createdAt: -1 };
 
 const listEvents = asyncHandler(async (req, res) => {
   const result = await listContent({
     model: Event,
-    filter: upcomingEventFilter(),
+    filter: publicEventFilter,
     sort: eventSort,
     page: req.query.page,
     limit: req.query.limit

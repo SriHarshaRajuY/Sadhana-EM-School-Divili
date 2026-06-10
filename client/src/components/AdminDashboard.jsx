@@ -167,11 +167,14 @@ const SITE_FIELD_GROUPS = [
     ]
   },
   {
-    title: "Academics, Facilities & Admissions",
+    title: "Academics, Faculty, Facilities & Admissions",
     fields: [
       { path: "academics.kicker", label: "Academics Kicker", type: "text" },
       { path: "academics.title", label: "Academics Title", type: "textarea" },
       { path: "academics.body", label: "Academics Body", type: "textarea" },
+      { path: "faculty.kicker", label: "Faculty Kicker", type: "text" },
+      { path: "faculty.title", label: "Faculty Title", type: "textarea" },
+      { path: "faculty.body", label: "Faculty Body", type: "textarea" },
       { path: "facilities.kicker", label: "Facilities Kicker", type: "text" },
       { path: "facilities.title", label: "Facilities Title", type: "textarea" },
       { path: "facilities.body", label: "Facilities Body", type: "textarea" },

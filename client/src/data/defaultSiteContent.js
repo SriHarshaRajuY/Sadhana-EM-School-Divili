@@ -62,6 +62,11 @@ export const defaultSiteContent = {
     title: "Structured learning for every stage of school life.",
     body: "Class-wise learning, regular practice and clear academic guidance help parents understand how children are supported at each stage."
   },
+  faculty: {
+    kicker: "Faculty",
+    title: "Teachers who guide students with care.",
+    body: "Meet the teaching team and school staff who support classroom learning, discipline, confidence and everyday student progress."
+  },
   facilities: {
     kicker: "Facilities",
     title: "A school environment made for learning, safety and routine.",

@@ -87,6 +87,11 @@ const siteContentSchema = new mongoose.Schema(
       title: { type: String, trim: true, maxlength: 240 },
       body: { type: String, trim: true, maxlength: 800 }
     },
+    faculty: {
+      kicker: { type: String, trim: true, maxlength: 120 },
+      title: { type: String, trim: true, maxlength: 240 },
+      body: { type: String, trim: true, maxlength: 800 }
+    },
     facilities: {
       kicker: { type: String, trim: true, maxlength: 120 },
       title: { type: String, trim: true, maxlength: 240 },
