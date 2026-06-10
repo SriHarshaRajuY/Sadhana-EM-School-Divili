@@ -1650,6 +1650,16 @@
       box-shadow: 0 0 0 4px rgba(244, 182, 64, 0.14);
     }
 
+    .field select option {
+      color: var(--ink);
+      background: var(--white);
+    }
+
+    .field select option:checked {
+      color: var(--white);
+      background: var(--primary);
+    }
+
     .field textarea {
       min-height: 96px;
       resize: vertical;
