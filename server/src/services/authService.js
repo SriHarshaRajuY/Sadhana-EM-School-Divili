@@ -5,8 +5,21 @@ const TOKEN_ALGORITHM = "HS256";
 const TOKEN_TYPE = "JWT";
 const PASSWORD_KEY_LENGTH = 64;
 
+const authError = (message = "Authentication token is invalid.", statusCode = 401) => {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+};
+
 const base64url = (value) => Buffer.from(value).toString("base64url");
-const fromBase64urlJson = (value) => JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
+
+const fromBase64urlJson = (value) => {
+  try {
+    return JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
+  } catch (error) {
+    throw authError();
+  }
+};
 
 const timingSafeEqualText = (left, right) => {
   const leftBuffer = Buffer.from(left);
@@ -60,10 +73,8 @@ const verifyAdminToken = (token) => {
   }
 
   const parts = String(token || "").split(".");
-  if (parts.length !== 3) {
-    const error = new Error("Authentication token is invalid.");
-    error.statusCode = 401;
-    throw error;
+  if (parts.length !== 3 || parts.some((part) => !part)) {
+    throw authError();
   }
 
   const [header, body, signature] = parts;
@@ -73,30 +84,22 @@ const verifyAdminToken = (token) => {
     .digest("base64url");
 
   if (!timingSafeEqualText(signature, expectedSignature)) {
-    const error = new Error("Authentication token is invalid.");
-    error.statusCode = 401;
-    throw error;
+    throw authError();
   }
 
   const parsedHeader = fromBase64urlJson(header);
   const payload = fromBase64urlJson(body);
 
   if (parsedHeader.alg !== TOKEN_ALGORITHM || parsedHeader.typ !== TOKEN_TYPE) {
-    const error = new Error("Authentication token is invalid.");
-    error.statusCode = 401;
-    throw error;
+    throw authError();
   }
 
-  if (payload.exp <= Math.floor(Date.now() / 1000)) {
-    const error = new Error("Authentication token has expired.");
-    error.statusCode = 401;
-    throw error;
+  if (!Number.isInteger(payload.exp) || payload.exp <= Math.floor(Date.now() / 1000)) {
+    throw authError("Authentication token has expired.");
   }
 
   if (payload.role !== "admin") {
-    const error = new Error("This action is not authorized.");
-    error.statusCode = 403;
-    throw error;
+    throw authError("This action is not authorized.", 403);
   }
 
   return payload;
@@ -120,4 +123,3 @@ module.exports = {
   verifyAdminToken,
   verifyPassword
 };
-

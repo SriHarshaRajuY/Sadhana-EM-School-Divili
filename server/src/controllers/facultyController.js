@@ -8,21 +8,38 @@ const {
   updateContent
 } = require("../services/contentService");
 
+const publicFacultyFilter = { isActive: true };
+const facultySort = { order: 1, name: 1 };
+
 const listFaculty = asyncHandler(async (req, res) => {
-  const data = await listContent({
+  const result = await listContent({
     model: Faculty,
-    filter: { isActive: true },
-    sort: { order: 1, name: 1 }
+    filter: publicFacultyFilter,
+    sort: facultySort,
+    page: req.query.page,
+    limit: req.query.limit
   });
 
-  res.json({ data });
+  res.json(result);
+});
+
+const listAllFaculty = asyncHandler(async (req, res) => {
+  const result = await listContent({
+    model: Faculty,
+    sort: facultySort,
+    page: req.query.page,
+    limit: req.query.limit
+  });
+
+  res.json(result);
 });
 
 const getFacultyMember = asyncHandler(async (req, res) => {
   const data = await getContentById({
     model: Faculty,
     id: req.params.id,
-    resourceName: "Faculty member"
+    resourceName: "Faculty member",
+    filter: publicFacultyFilter
   });
 
   res.json({ data });
@@ -58,6 +75,7 @@ module.exports = {
   createFacultyMember,
   deleteFacultyMember,
   getFacultyMember,
+  listAllFaculty,
   listFaculty,
   updateFacultyMember
 };

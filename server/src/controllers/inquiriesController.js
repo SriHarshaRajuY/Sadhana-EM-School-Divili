@@ -1,11 +1,15 @@
-const crypto = require("crypto");
 const Inquiry = require("../models/Inquiry");
 const { isMongoConnected } = require("../config/database");
 const asyncHandler = require("../middleware/asyncHandler");
+const { databaseUnavailable, listContent } = require("../services/contentService");
 
-const memoryInquiries = [];
+const inquiryStatuses = new Set(["new", "contacted", "visit_scheduled", "admitted", "closed"]);
 
 const createInquiry = asyncHandler(async (req, res) => {
+  if (!isMongoConnected()) {
+    throw databaseUnavailable();
+  }
+
   const inquiry = {
     ...req.body,
     source: req.body.source || "website",
@@ -15,44 +19,37 @@ const createInquiry = asyncHandler(async (req, res) => {
     }
   };
 
-  if (!isMongoConnected()) {
-    const data = {
-      _id: crypto.randomUUID(),
-      ...inquiry,
-      status: "new",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    memoryInquiries.unshift(data);
-    return res.status(201).json({ data });
-  }
+  const data = await Inquiry.create(inquiry).catch((error) => {
+    if (error.name === "MongooseError" || error.name === "MongoServerSelectionError") {
+      throw databaseUnavailable();
+    }
 
-  const data = await Inquiry.create(inquiry);
+    throw error;
+  });
+
   return res.status(201).json({ data });
 });
 
 const listInquiries = asyncHandler(async (req, res) => {
-  if (!isMongoConnected()) {
-    return res.json({ data: memoryInquiries });
+  const filter = {};
+  if (inquiryStatuses.has(req.query.status)) {
+    filter.status = req.query.status;
   }
 
-  const data = await Inquiry.find().sort({ createdAt: -1 }).lean();
-  return res.json({ data });
+  const result = await listContent({
+    model: Inquiry,
+    filter,
+    sort: { createdAt: -1 },
+    page: req.query.page,
+    limit: req.query.limit
+  });
+
+  return res.json(result);
 });
 
 const updateInquiryStatus = asyncHandler(async (req, res) => {
   if (!isMongoConnected()) {
-    const inquiry = memoryInquiries.find((item) => item._id === req.params.id);
-    if (!inquiry) {
-      const error = new Error("Inquiry not found.");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    inquiry.status = req.body.status;
-    inquiry.notes = req.body.notes;
-    inquiry.updatedAt = new Date().toISOString();
-    return res.json({ data: inquiry });
+    throw databaseUnavailable();
   }
 
   const data = await Inquiry.findByIdAndUpdate(
@@ -78,4 +75,3 @@ module.exports = {
   listInquiries,
   updateInquiryStatus
 };
-

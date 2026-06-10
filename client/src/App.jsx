@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { schoolApi } from "./api/schoolApi";
+import AdminDashboard from "./components/AdminDashboard";
 import {
   emptyAnnouncements,
   emptyEvents,
@@ -32,7 +33,7 @@ const getEventDate = (event) => {
   const date = new Date(event.startsAt);
 
   if (Number.isNaN(date.getTime())) {
-    return { month: "Jun", day: "15" };
+    return { month: "TBA", day: "--" };
   }
 
   return {
@@ -52,29 +53,47 @@ function EmptyState({ title, children }) {
 
 function App() {
   const [content, setContent] = useState(initialContent);
+  const [contentNotice, setContentNotice] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadContent = async () => {
-      const [announcements, events, faculty, programs] = await Promise.all([
-        schoolApi.getAnnouncements().catch(() => emptyAnnouncements),
-        schoolApi.getEvents().catch(() => emptyEvents),
-        schoolApi.getFaculty().catch(() => emptyFaculty),
-        schoolApi.getPrograms().catch(() => emptyPrograms)
-      ]);
+      const requests = [
+        { key: "announcements", label: "notices", fallback: emptyAnnouncements, request: schoolApi.getAnnouncements },
+        { key: "events", label: "events", fallback: emptyEvents, request: schoolApi.getEvents },
+        { key: "faculty", label: "faculty", fallback: emptyFaculty, request: schoolApi.getFaculty },
+        { key: "programs", label: "academic programs", fallback: emptyPrograms, request: schoolApi.getPrograms }
+      ];
+
+      const results = await Promise.allSettled(requests.map((item) => item.request()));
 
       if (!isMounted) {
         return;
       }
 
-      setContent({
-        announcements: normalizeList(announcements, emptyAnnouncements),
-        events: normalizeList(events, emptyEvents),
-        faculty: normalizeList(faculty, emptyFaculty),
-        programs: normalizeList(programs, emptyPrograms)
+      const nextContent = { ...initialContent };
+      const failedSections = [];
+
+      results.forEach((result, index) => {
+        const request = requests[index];
+
+        if (result.status === "fulfilled") {
+          nextContent[request.key] = normalizeList(result.value, request.fallback);
+          return;
+        }
+
+        nextContent[request.key] = request.fallback;
+        failedSections.push(request.label);
       });
+
+      setContent(nextContent);
+      setContentNotice(
+        failedSections.length
+          ? `Live ${failedSections.join(", ")} could not be loaded right now. Please contact the school office for the latest information.`
+          : ""
+      );
     };
 
     loadContent();
@@ -91,8 +110,6 @@ function App() {
 
   const visibleEvents = useMemo(() => content.events.slice(0, 3), [content.events]);
   const visiblePrograms = useMemo(() => content.programs.slice(0, 4), [content.programs]);
-  const callHref = siteConfig.phoneHref || "#contact";
-  const whatsappHref = siteConfig.whatsappHref || "#contact";
 
   const handleInquirySubmit = async (event) => {
     event.preventDefault();
@@ -109,7 +126,9 @@ function App() {
     try {
       await schoolApi.submitInquiry({
         parentName: String(formData.get("parent") || "").trim(),
+        studentName: String(formData.get("student") || "").trim(),
         phone: String(formData.get("phone") || "").trim(),
+        email: String(formData.get("email") || "").trim(),
         classInterest: String(formData.get("class") || "").trim(),
         message: String(formData.get("message") || "").trim(),
         source: "website"
@@ -130,16 +149,16 @@ function App() {
         <div className="top-utility-inner">
           <p>Admissions enquiry open for the new academic year. Quality learning, values and care closer to home.</p>
           <div className="quick-actions" aria-label="Quick contact actions">
-            <a className="quick-action" href={callHref}>Call Now</a>
-            <a className="quick-action" href={whatsappHref}>WhatsApp</a>
+            {siteConfig.phoneHref ? <a className="quick-action" href={siteConfig.phoneHref}>Call Now</a> : null}
+            {siteConfig.whatsappHref ? <a className="quick-action" href={siteConfig.whatsappHref}>WhatsApp</a> : null}
             <a className="quick-action highlight" href="#contact">Admission Enquiry</a>
           </div>
         </div>
       </div>
 
       <div className="floating-cta" aria-label="Sticky contact actions">
-        <a className="float-link" href={callHref} aria-label="Call Sadhana School">Call</a>
-        <a className="float-link" href={whatsappHref} aria-label="Message Sadhana School on WhatsApp">WA</a>
+        {siteConfig.phoneHref ? <a className="float-link" href={siteConfig.phoneHref} aria-label="Call Sadhana School">Call</a> : null}
+        {siteConfig.whatsappHref ? <a className="float-link" href={siteConfig.whatsappHref} aria-label="Message Sadhana School on WhatsApp">WA</a> : null}
         <a className="float-link gold" href="#contact" aria-label="Go to admission enquiry form">Apply</a>
       </div>
 
@@ -203,6 +222,12 @@ function App() {
           </div>
         </section>
 
+        {contentNotice ? (
+          <div className="container site-alert" role="status">
+            {contentNotice}
+          </div>
+        ) : null}
+
         <section className="section deep" aria-label="School numbers">
           <div className="container">
             <div className="section-head">
@@ -245,7 +270,7 @@ function App() {
             <div>
               <div className="section-kicker">About Sadhana</div>
               <h2>A calm, disciplined school for growing students with care.</h2>
-              <p style={{ marginTop: 18, color: "var(--muted)", maxWidth: 760 }}>The website presents Sadhana as a trusted school for rural and semi-urban families: simple admission information, clear academic positioning, facility highlights, events, notices, gallery and a staff-friendly content update model.</p>
+              <p style={{ marginTop: 18, color: "var(--muted)", maxWidth: 760 }}>Sadhana is presented as a trusted school for rural and semi-urban families: simple admission information, clear academic positioning, facility highlights, events, notices, gallery and a staff-friendly content update model.</p>
 
               <div className="values" style={{ marginTop: 26 }}>
                 <div className="value">
@@ -275,7 +300,7 @@ function App() {
                 <div className="section-kicker">Academics</div>
                 <h2>Structured learning for every stage of school life.</h2>
               </div>
-              <p>The academic pages can be expanded into separate class-wise pages when the school wants deeper detail.</p>
+              <p>Academic program details are published from the school dashboard after they are verified by the office team.</p>
             </div>
 
             <div className="program-grid">
@@ -306,7 +331,7 @@ function App() {
                 <div className="section-kicker">Facilities</div>
                 <h2>A school environment made for learning, safety and routine.</h2>
               </div>
-              <p>Use this section to show real photos of classrooms, campus, activities and transport once the final image set is ready.</p>
+              <p>Facilities listed here should reflect verified campus services and can be refined after the school office confirms the final list.</p>
             </div>
 
             <div className="facility-list">
@@ -378,7 +403,7 @@ function App() {
                 <div className="section-kicker">Events & Notices</div>
                 <h2>Latest school updates in one clear place.</h2>
               </div>
-              <p>For the final website, staff can update announcements, events, notices, gallery images and admission updates from the admin panel.</p>
+              <p>Staff can update announcements, events, notices and admission updates from the protected admin panel.</p>
             </div>
 
             <div className="notice-layout">
@@ -427,82 +452,25 @@ function App() {
                 <div className="section-kicker">Gallery</div>
                 <h2>Show parents the real life of the school.</h2>
               </div>
-              <p>The real website should use authentic school images here: campus, classrooms, children activities, awards and parent events.</p>
+              <p>Official school images can be published here after the school office reviews and approves them.</p>
             </div>
 
             <div className="gallery">
-              <div className="photo-panel wide">
-                <div className="photo-caption">
-                  <strong>Campus</strong>
-                  <span>School building and morning assembly.</span>
-                </div>
-              </div>
-              <div className="photo-panel classroom">
-                <div className="photo-caption">
-                  <strong>Classrooms</strong>
-                  <span>Focused teaching and practice.</span>
-                </div>
-              </div>
-              <div className="photo-panel activity">
-                <div className="photo-caption">
-                  <strong>Activities</strong>
-                  <span>Confidence beyond marks.</span>
-                </div>
-              </div>
-              <div className="photo-panel">
-                <div className="photo-caption">
-                  <strong>Library</strong>
-                  <span>Reading and language growth.</span>
-                </div>
-              </div>
-              <div className="photo-panel classroom">
-                <div className="photo-caption">
-                  <strong>Events</strong>
-                  <span>Competitions and celebrations.</span>
-                </div>
-              </div>
+              <EmptyState title="Official gallery images are not published yet.">
+                Approved campus and activity photos will appear here after the school provides them.
+              </EmptyState>
             </div>
           </div>
         </section>
 
         <section className="section deep" id="admin">
           <div className="container cms">
-            <div className="cms-screen">
-              <div className="cms-top">
-                <div>
-                  <strong>Sadhana CMS Admin Head</strong>
-                  <span>Dashboard preview for notices, events, gallery and admission updates</span>
-                </div>
-                <div className="cms-actions">
-                  <span className="cms-action">New Notice</span>
-                  <span className="cms-action">Upload Photo</span>
-                  <span className="cms-pill">Admin</span>
-                </div>
-              </div>
-              <div className="cms-grid">
-                <div className="cms-card">
-                  <strong>Announcements</strong>
-                  <span>Create verified admission alerts, fee notices and urgent messages.</span>
-                </div>
-                <div className="cms-card">
-                  <strong>Events</strong>
-                  <span>Add event title, date, photos and short summary for parents.</span>
-                </div>
-                <div className="cms-card">
-                  <strong>Gallery</strong>
-                  <span>Upload campus, classroom, activity and award images with categories.</span>
-                </div>
-                <div className="cms-card">
-                  <strong>Admissions</strong>
-                  <span>Track enquiry status, class interest, call-back and campus visit requests.</span>
-                </div>
-              </div>
-            </div>
+            <AdminDashboard />
 
             <div className="cms-copy">
               <div className="section-kicker">CMS Plan</div>
               <h2>Staff should update the website without calling a developer.</h2>
-              <p>This HTML version shows the public website and the admin concept. In development, this section can become a login-based dashboard for notices, events, gallery and admission updates.</p>
+              <p>This protected dashboard connects directly to the MERN API for verified notices, events, faculty profiles, academic programs and admission enquiries.</p>
             </div>
           </div>
         </section>
@@ -550,6 +518,17 @@ function App() {
                 />
               </div>
               <div className="field">
+                <label htmlFor="student">Student Name</label>
+                <input
+                  id="student"
+                  name="student"
+                  type="text"
+                  placeholder="Enter student name"
+                  autoComplete="name"
+                  maxLength="120"
+                />
+              </div>
+              <div className="field">
                 <label htmlFor="phone">Mobile Number</label>
                 <input
                   id="phone"
@@ -563,6 +542,16 @@ function App() {
                   pattern="[0-9+\-\s()]+"
                   title="Use digits, spaces, +, -, or brackets."
                   required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter email address"
+                  autoComplete="email"
                 />
               </div>
               <div className="field">

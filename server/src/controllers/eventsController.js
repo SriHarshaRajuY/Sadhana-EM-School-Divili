@@ -8,21 +8,48 @@ const {
   updateContent
 } = require("../services/contentService");
 
+const upcomingEventFilter = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return {
+    isPublished: true,
+    $or: [{ startsAt: { $gte: today } }, { endsAt: { $gte: new Date() } }]
+  };
+};
+
+const publicEventFilter = { isPublished: true };
+const eventSort = { startsAt: 1, createdAt: -1 };
+
 const listEvents = asyncHandler(async (req, res) => {
-  const data = await listContent({
+  const result = await listContent({
     model: Event,
-    filter: { isPublished: true },
-    sort: { startsAt: 1, createdAt: -1 }
+    filter: upcomingEventFilter(),
+    sort: eventSort,
+    page: req.query.page,
+    limit: req.query.limit
   });
 
-  res.json({ data });
+  res.json(result);
+});
+
+const listAllEvents = asyncHandler(async (req, res) => {
+  const result = await listContent({
+    model: Event,
+    sort: eventSort,
+    page: req.query.page,
+    limit: req.query.limit
+  });
+
+  res.json(result);
 });
 
 const getEvent = asyncHandler(async (req, res) => {
   const data = await getContentById({
     model: Event,
     id: req.params.id,
-    resourceName: "Event"
+    resourceName: "Event",
+    filter: publicEventFilter
   });
 
   res.json({ data });
@@ -58,6 +85,7 @@ module.exports = {
   createEvent,
   deleteEvent,
   getEvent,
+  listAllEvents,
   listEvents,
   updateEvent
 };

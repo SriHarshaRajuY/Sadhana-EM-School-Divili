@@ -12,7 +12,8 @@ The school logo is served from `client/public/school-logo.jpeg` and is used in t
 - Express + Node API in `server/`
 - MongoDB with Mongoose models
 - RESTful routes for announcements, events, faculty, programs, and admission inquiries
-- Helmet, CORS, rate limiting, validation, centralized errors, and environment configuration
+- Helmet, CORS, public/API rate limiting, separate login throttling, validation, centralized errors, and environment configuration
+- Protected staff dashboard for managing live school content and enquiry status
 
 ## Project Structure
 
@@ -57,6 +58,12 @@ ADMIN_PASSWORD_HASH=scrypt_password_hash
 ADMIN_TOKEN_SECRET=long_random_token_secret
 ADMIN_TOKEN_EXPIRES_IN_MINUTES=60
 CORS_ORIGIN=http://localhost:5173,http://127.0.0.1:5173
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=200
+AUTH_RATE_LIMIT_WINDOW_MS=900000
+AUTH_RATE_LIMIT_MAX=10
+INQUIRY_RATE_LIMIT_WINDOW_MS=3600000
+INQUIRY_RATE_LIMIT_MAX=20
 VITE_API_BASE_URL=
 VITE_SCHOOL_PHONE_DISPLAY=
 VITE_SCHOOL_PHONE_TEL=
@@ -66,7 +73,7 @@ VITE_SCHOOL_CAMPUS=
 VITE_SCHOOL_OFFICE_HOURS=
 ```
 
-The application does not ship seed/demo school records. If MongoDB is empty, public content APIs return empty arrays and the frontend shows neutral empty states until real school content is added.
+The application does not ship seed/demo school records. If MongoDB is connected but empty, public content APIs return empty arrays and the frontend shows neutral empty states until real school content is added. If MongoDB is unavailable, database-backed APIs return a clear service-unavailable error instead of pretending a parent enquiry or staff update succeeded.
 
 In production, `MONGODB_URI`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, and `ADMIN_TOKEN_SECRET` are required.
 
@@ -93,6 +100,8 @@ npm run hash:password -- "your strong staff password"
 ```
 
 Put the generated value in `ADMIN_PASSWORD_HASH`. Do not store plaintext staff passwords in `.env`.
+
+The public page includes a protected `#admin` dashboard. Staff can sign in with the configured admin credentials to create, edit, publish, hide, and delete announcements, events, faculty profiles, and academic programs, and to update admission enquiry status.
 
 ## Production Build
 
@@ -137,9 +146,15 @@ DELETE /api/programs/:id
 GET    /api/inquiries
 POST   /api/inquiries
 PATCH  /api/inquiries/:id/status
+
+GET    /api/admin/announcements
+GET    /api/admin/events
+GET    /api/admin/faculty
+GET    /api/admin/programs
+GET    /api/admin/inquiries
 ```
 
-The current public UI consumes announcements, events, programs, faculty metadata, and the inquiry submission endpoint. Faculty data is supported in the API without adding a new public section, so the existing UI/UX remains unchanged.
+The current public UI consumes announcements, events, programs, faculty metadata, and the inquiry submission endpoint. Faculty data is supported in the API and in the admin dashboard without forcing a public redesign.
 
 Admin write routes and inquiry management routes require a bearer token from `POST /api/auth/login`:
 

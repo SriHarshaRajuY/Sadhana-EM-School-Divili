@@ -12,20 +12,50 @@ const notFound = (resourceName) => {
   return error;
 };
 
-const listContent = async ({ model, filter, sort }) => {
-  if (!isMongoConnected()) {
-    return [];
-  }
-
-  return model.find(filter).sort(sort).lean();
+const normalizePositiveInteger = (value, fallback) => {
+  const number = Number(value);
+  return Number.isInteger(number) && number > 0 ? number : fallback;
 };
 
-const getContentById = async ({ model, id, resourceName }) => {
+const normalizePagination = ({ page = 1, limit = 50 } = {}) => {
+  const normalizedPage = normalizePositiveInteger(page, 1);
+  const normalizedLimit = Math.min(normalizePositiveInteger(limit, 50), 100);
+
+  return {
+    limit: normalizedLimit,
+    page: normalizedPage,
+    skip: (normalizedPage - 1) * normalizedLimit
+  };
+};
+
+const listContent = async ({ model, filter = {}, sort = { createdAt: -1 }, page, limit }) => {
   if (!isMongoConnected()) {
     throw databaseUnavailable();
   }
 
-  const document = await model.findById(id).lean();
+  const pagination = normalizePagination({ page, limit });
+  const [data, total] = await Promise.all([
+    model.find(filter).sort(sort).skip(pagination.skip).limit(pagination.limit).lean(),
+    model.countDocuments(filter)
+  ]);
+
+  return {
+    data,
+    meta: {
+      page: pagination.page,
+      limit: pagination.limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / pagination.limit))
+    }
+  };
+};
+
+const getContentById = async ({ model, id, resourceName, filter = {} }) => {
+  if (!isMongoConnected()) {
+    throw databaseUnavailable();
+  }
+
+  const document = await model.findOne({ _id: id, ...filter }).lean();
   if (!document) {
     throw notFound(resourceName);
   }
@@ -73,8 +103,10 @@ const deleteContent = async ({ model, id, resourceName }) => {
 
 module.exports = {
   createContent,
+  databaseUnavailable,
   deleteContent,
   getContentById,
   listContent,
+  normalizePagination,
   updateContent
 };

@@ -8,7 +8,7 @@ const {
 const env = require("../config/env");
 const requireAdmin = require("../middleware/adminAuth");
 const { validateBody, validateParams } = require("../middleware/validate");
-const { inquiryCreateSchema, inquiryStatusSchema, recordIdSchema } = require("../validators/contentSchemas");
+const { inquiryCreateSchema, inquiryStatusSchema, objectIdSchema } = require("../validators/contentSchemas");
 
 const router = express.Router();
 const inquiryLimiter = rateLimit({
@@ -31,7 +31,7 @@ router
 router.patch(
   "/:id/status",
   requireAdmin,
-  validateParams(recordIdSchema),
+  validateParams(objectIdSchema),
   validateBody(inquiryStatusSchema),
   updateInquiryStatus
 );

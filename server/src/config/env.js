@@ -34,6 +34,8 @@ const env = {
   ]),
   RATE_LIMIT_WINDOW_MS: parseNumber(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),
   RATE_LIMIT_MAX: parseNumber(process.env.RATE_LIMIT_MAX, 200),
+  AUTH_RATE_LIMIT_WINDOW_MS: parseNumber(process.env.AUTH_RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),
+  AUTH_RATE_LIMIT_MAX: parseNumber(process.env.AUTH_RATE_LIMIT_MAX, 10),
   INQUIRY_RATE_LIMIT_WINDOW_MS: parseNumber(process.env.INQUIRY_RATE_LIMIT_WINDOW_MS, 60 * 60 * 1000),
   INQUIRY_RATE_LIMIT_MAX: parseNumber(process.env.INQUIRY_RATE_LIMIT_MAX, 20),
   TRUST_PROXY: process.env.TRUST_PROXY === "true"

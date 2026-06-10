@@ -8,21 +8,38 @@ const {
   updateContent
 } = require("../services/contentService");
 
+const publicProgramFilter = { isPublished: true };
+const programSort = { order: 1, title: 1 };
+
 const listPrograms = asyncHandler(async (req, res) => {
-  const data = await listContent({
+  const result = await listContent({
     model: Program,
-    filter: { isPublished: true },
-    sort: { order: 1, title: 1 }
+    filter: publicProgramFilter,
+    sort: programSort,
+    page: req.query.page,
+    limit: req.query.limit
   });
 
-  res.json({ data });
+  res.json(result);
+});
+
+const listAllPrograms = asyncHandler(async (req, res) => {
+  const result = await listContent({
+    model: Program,
+    sort: programSort,
+    page: req.query.page,
+    limit: req.query.limit
+  });
+
+  res.json(result);
 });
 
 const getProgram = asyncHandler(async (req, res) => {
   const data = await getContentById({
     model: Program,
     id: req.params.id,
-    resourceName: "Program"
+    resourceName: "Program",
+    filter: publicProgramFilter
   });
 
   res.json({ data });
@@ -58,6 +75,7 @@ module.exports = {
   createProgram,
   deleteProgram,
   getProgram,
+  listAllPrograms,
   listPrograms,
   updateProgram
 };

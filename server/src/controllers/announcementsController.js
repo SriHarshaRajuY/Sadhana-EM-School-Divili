@@ -8,24 +8,42 @@ const {
   updateContent
 } = require("../services/contentService");
 
+const publicAnnouncementFilter = () => ({
+  isPublished: true,
+  $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gte: new Date() } }]
+});
+
+const announcementSort = { priority: -1, publishedAt: -1, createdAt: -1 };
+
 const listAnnouncements = asyncHandler(async (req, res) => {
-  const data = await listContent({
+  const result = await listContent({
     model: Announcement,
-    filter: {
-      isPublished: true,
-      $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gte: new Date() } }]
-    },
-    sort: { priority: -1, publishedAt: -1, createdAt: -1 }
+    filter: publicAnnouncementFilter(),
+    sort: announcementSort,
+    page: req.query.page,
+    limit: req.query.limit
   });
 
-  res.json({ data });
+  res.json(result);
+});
+
+const listAllAnnouncements = asyncHandler(async (req, res) => {
+  const result = await listContent({
+    model: Announcement,
+    sort: announcementSort,
+    page: req.query.page,
+    limit: req.query.limit
+  });
+
+  res.json(result);
 });
 
 const getAnnouncement = asyncHandler(async (req, res) => {
   const data = await getContentById({
     model: Announcement,
     id: req.params.id,
-    resourceName: "Announcement"
+    resourceName: "Announcement",
+    filter: publicAnnouncementFilter()
   });
 
   res.json({ data });
@@ -61,6 +79,7 @@ module.exports = {
   createAnnouncement,
   deleteAnnouncement,
   getAnnouncement,
+  listAllAnnouncements,
   listAnnouncements,
   updateAnnouncement
 };

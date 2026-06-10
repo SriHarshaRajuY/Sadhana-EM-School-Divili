@@ -1,5 +1,7 @@
 const express = require("express");
+const env = require("../config/env");
 const { isMongoConnected } = require("../config/database");
+const adminRoutes = require("./adminRoutes");
 const announcementsRoutes = require("./announcementsRoutes");
 const authRoutes = require("./authRoutes");
 const eventsRoutes = require("./eventsRoutes");
@@ -10,13 +12,19 @@ const programsRoutes = require("./programsRoutes");
 const router = express.Router();
 
 router.get("/health", (req, res) => {
-  res.json({
+  const payload = {
     status: "ok",
-    database: isMongoConnected() ? "connected" : "offline",
     timestamp: new Date().toISOString()
-  });
+  };
+
+  if (env.NODE_ENV !== "production") {
+    payload.database = isMongoConnected() ? "connected" : "offline";
+  }
+
+  res.json(payload);
 });
 
+router.use("/admin", adminRoutes);
 router.use("/announcements", announcementsRoutes);
 router.use("/auth", authRoutes);
 router.use("/events", eventsRoutes);
