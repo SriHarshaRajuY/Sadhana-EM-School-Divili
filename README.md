@@ -24,7 +24,7 @@ The website does not show fake records. If the school has not published notices,
 Staff can manage the website from the protected staff portal:
 
 1. Open the public website.
-2. Click `Staff Login` in the navigation.
+2. Click `Staff Login` in the navigation, or open `/staff-login`.
 3. Sign in with the private staff username and password configured in the deployment environment.
 4. Use the dashboard tabs to manage the website.
 
@@ -40,9 +40,12 @@ Staff can update:
 
 Published records appear on the public website automatically. Hidden or inactive records stay in the staff portal and are not shown to parents.
 
+The staff portal opens as a separate page in the same browser tab. It is not part of the public homepage, so parents do not need to scroll past staff-only tools.
+
 ## Public Display Rules
 
-- Recent events are shown first on the home page.
+- Recent notices are shown near the top of the home page.
+- Recent events are shown in the events section.
 - If more records are available, the website provides a parent-facing `View all` option.
 - Notices appear in the school updates section.
 - Faculty profiles appear in the faculty section when marked active.

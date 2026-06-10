@@ -243,6 +243,14 @@ const toDatePayload = (value) => {
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
 };
 
+const toOptionalDateUpdatePayload = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  return toDatePayload(value);
+};
+
 const toLines = (value) => (Array.isArray(value) ? value.join("\n") : value || "");
 
 const linesToArray = (value) =>
@@ -627,12 +635,12 @@ function AdminDashboard() {
     if (activeResource === "announcements") {
       payload.priority = Number(payload.priority || 0);
       payload.publishedAt = toDatePayload(payload.publishedAt);
-      payload.expiresAt = toDatePayload(payload.expiresAt);
+      payload.expiresAt = editingId ? toOptionalDateUpdatePayload(payload.expiresAt) : toDatePayload(payload.expiresAt);
     }
 
     if (activeResource === "events") {
       payload.startsAt = toDatePayload(payload.startsAt);
-      payload.endsAt = toDatePayload(payload.endsAt);
+      payload.endsAt = editingId ? toOptionalDateUpdatePayload(payload.endsAt) : toDatePayload(payload.endsAt);
     }
 
     if (activeResource === "faculty") {

@@ -20,6 +20,11 @@ const optionalUrl = z.preprocess(
   z.string().trim().url().max(600).optional()
 );
 
+const optionalDate = z.preprocess(
+  (value) => (value === "" ? undefined : value),
+  z.coerce.date().nullable().optional()
+);
+
 const requestBoolean = (defaultValue) =>
   z.preprocess((value) => {
     if (value === undefined || value === "") {
@@ -57,8 +62,8 @@ const announcementBaseSchema = z.object({
   category: optionalString(80),
   priority: z.coerce.number().int().min(0).max(10).default(0),
   isPublished: requestBoolean(true),
-  publishedAt: z.coerce.date().optional(),
-  expiresAt: z.coerce.date().optional()
+  publishedAt: optionalDate,
+  expiresAt: optionalDate
 }).strict();
 
 const validateAnnouncementDates = (value, context) => {
@@ -78,7 +83,7 @@ const eventBaseSchema = z.object({
   title: z.string().trim().min(3).max(180),
   description: z.string().trim().min(3).max(1200),
   startsAt: z.coerce.date(),
-  endsAt: z.coerce.date().optional(),
+  endsAt: optionalDate,
   location: optionalString(180),
   category: optionalString(80),
   imageUrl: optionalUrl,

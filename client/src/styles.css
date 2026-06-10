@@ -148,6 +148,60 @@
       backdrop-filter: blur(14px);
     }
 
+    .staff-page {
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(16, 47, 95, 0.96), rgba(15, 124, 159, 0.9)),
+        var(--primary-deep);
+      color: var(--white);
+    }
+
+    .staff-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(246, 248, 251, 0.97);
+      border-bottom: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 12px 36px rgba(16, 47, 95, 0.14);
+      backdrop-filter: blur(14px);
+    }
+
+    .staff-main {
+      padding: 44px 0 64px;
+    }
+
+    .staff-portal-layout {
+      align-items: start;
+    }
+
+    .staff-copy {
+      position: sticky;
+      top: 112px;
+    }
+
+    .staff-home-link {
+      width: fit-content;
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 22px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      color: var(--ink);
+      background: var(--gold);
+      font-weight: 900;
+      font-size: 0.9rem;
+      transition: transform 180ms var(--ease), box-shadow 180ms var(--ease);
+    }
+
+    .staff-home-link:hover,
+    .staff-home-link:focus-visible {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+      outline: none;
+    }
+
     .nav {
       width: min(var(--max), calc(100% - 32px));
       margin: 0 auto;
@@ -915,6 +969,69 @@
       margin-top: 9px;
       color: var(--muted);
       font-size: 0.94rem;
+    }
+
+    .notice-preview-section {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.92), rgba(246,248,251,0.92)),
+        var(--white);
+    }
+
+    .notice-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .notice-card {
+      min-height: 190px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 22px;
+      border: 1px solid rgba(33, 79, 154, 0.16);
+      border-radius: var(--radius);
+      background: var(--white);
+      box-shadow: 0 18px 44px rgba(23, 48, 95, 0.08);
+      transition: transform 220ms var(--ease), border-color 220ms var(--ease), box-shadow 220ms var(--ease);
+    }
+
+    .notice-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(33, 79, 154, 0.32);
+      box-shadow: 0 24px 54px rgba(23, 48, 95, 0.13);
+    }
+
+    .notice-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 900;
+    }
+
+    .notice-category {
+      min-width: 0;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .notice-date {
+      flex: 0 0 auto;
+      color: #79522b;
+    }
+
+    .notice-card h3 {
+      font-size: 1.18rem;
+      line-height: 1.2;
+    }
+
+    .notice-card p {
+      color: var(--muted);
+      font-size: 0.95rem;
     }
 
     .admission-band {
@@ -1801,8 +1918,13 @@
 
       .program-grid,
       .faculty-grid,
+      .notice-card-grid,
       .stats {
         grid-template-columns: repeat(2, 1fr);
+      }
+
+      .staff-copy {
+        position: static;
       }
 
       .facility-list {
@@ -1915,6 +2037,7 @@
       .values,
       .program-grid,
       .faculty-grid,
+      .notice-card-grid,
       .stats,
       .facility-list,
       .gallery,

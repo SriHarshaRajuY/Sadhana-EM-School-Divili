@@ -22,6 +22,19 @@ const INITIAL_ANNOUNCEMENT_COUNT = 4;
 const INITIAL_EVENT_COUNT = 2;
 const INITIAL_FACULTY_COUNT = 4;
 const INITIAL_PROGRAM_COUNT = 4;
+const STAFF_ROUTES = new Set(["/staff-login", "/admin"]);
+
+const getCurrentRoutePath = () => {
+  if (typeof window === "undefined") {
+    return "/";
+  }
+
+  if (window.location.hash === "#admin") {
+    return "/staff-login";
+  }
+
+  return window.location.pathname || "/";
+};
 
 const normalizeList = (items, fallback) => (Array.isArray(items) && items.length ? items : fallback);
 
@@ -81,7 +94,48 @@ function ViewMoreButton({ expanded, total, initialCount, onClick, viewLabel, few
   );
 }
 
+function StaffPortalPage({ siteContent }) {
+  const schoolName = siteContent.school.name;
+
+  return (
+    <div className="staff-page">
+      <header className="staff-header">
+        <nav className="nav" aria-label="Staff portal navigation">
+          <a href="/" className="brand" aria-label="Back to Sadhana School home">
+            <span className="crest" aria-hidden="true">
+              <img className="crest-logo" src="/school-logo.jpeg" alt="" />
+            </span>
+            <span className="brand-text">
+              <strong>{schoolName}</strong>
+              <span>Staff Portal</span>
+            </span>
+          </a>
+
+          <div className="nav-links">
+            <a href="/">Public Website</a>
+            <a href="/#contact" className="primary-link">Admissions</a>
+          </div>
+        </nav>
+      </header>
+
+      <main className="staff-main">
+        <div className="container cms staff-portal-layout">
+          <AdminDashboard />
+
+          <aside className="cms-copy staff-copy">
+            <div className="section-kicker">{siteContent.adminCopy.kicker}</div>
+            <h2>{siteContent.adminCopy.title}</h2>
+            <p>{siteContent.adminCopy.body}</p>
+            <a className="staff-home-link" href="/">Return to public website</a>
+          </aside>
+        </div>
+      </main>
+    </div>
+  );
+}
+
 function App() {
+  const [routePath, setRoutePath] = useState(getCurrentRoutePath);
   const [content, setContent] = useState(initialContent);
   const [siteContent, setSiteContent] = useState(defaultSiteContent);
   const [contentNotice, setContentNotice] = useState("");
@@ -92,6 +146,25 @@ function App() {
     programs: false
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const syncRoute = () => {
+      if (window.location.hash === "#admin") {
+        window.history.replaceState(null, "", "/staff-login");
+      }
+
+      setRoutePath(getCurrentRoutePath());
+    };
+
+    syncRoute();
+    window.addEventListener("popstate", syncRoute);
+    window.addEventListener("hashchange", syncRoute);
+
+    return () => {
+      window.removeEventListener("popstate", syncRoute);
+      window.removeEventListener("hashchange", syncRoute);
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -160,6 +233,14 @@ function App() {
     [content.announcements, expandedSections.announcements]
   );
 
+  const homepageAnnouncements = useMemo(
+    () =>
+      expandedSections.announcements
+        ? content.announcements
+        : content.announcements.slice(0, 3),
+    [content.announcements, expandedSections.announcements]
+  );
+
   const visibleEvents = useMemo(
     () => (expandedSections.events ? content.events : content.events.slice(0, INITIAL_EVENT_COUNT)),
     [content.events, expandedSections.events]
@@ -223,6 +304,10 @@ function App() {
     }
   };
 
+  if (STAFF_ROUTES.has(routePath)) {
+    return <StaffPortalPage siteContent={siteContent} />;
+  }
+
   return (
     <>
       <div className="top-utility">
@@ -260,8 +345,9 @@ function App() {
             <a href="#faculty">Faculty</a>
             <a href="#facilities">Facilities</a>
             <a href="#events">Events</a>
+            <a href="#notices">Notices</a>
             <a href="#gallery">Gallery</a>
-            <a href="#admin">Staff Login</a>
+            <a href="/staff-login">Staff Login</a>
             <a href="#contact" className="primary-link">Admissions</a>
           </div>
         </nav>
@@ -302,6 +388,54 @@ function App() {
             {contentNotice}
           </div>
         ) : null}
+
+        <section id="notices" className="section notice-preview-section" aria-label="Latest school notices">
+          <div className="container">
+            <div className="section-head">
+              <div>
+                <div className="section-kicker">Latest Notices</div>
+                <h2>Official updates for parents.</h2>
+              </div>
+              <p>Important school notices added by the office appear here first so families can see recent information without searching through the page.</p>
+            </div>
+
+            <div className="notice-card-grid">
+              {homepageAnnouncements.length ? (
+                homepageAnnouncements.map((announcement) => (
+                  <article className="notice-card" key={announcement._id || announcement.title}>
+                    <div className="notice-card-header">
+                      <span className="notice-category">{announcement.category || "School Notice"}</span>
+                      {announcement.publishedAt ? (
+                        <time className="notice-date" dateTime={announcement.publishedAt}>
+                          {new Date(announcement.publishedAt).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric"
+                          })}
+                        </time>
+                      ) : null}
+                    </div>
+                    <h3>{announcement.title}</h3>
+                    {announcement.body ? <p>{announcement.body}</p> : null}
+                  </article>
+                ))
+              ) : (
+                <EmptyState title="No official notices are published yet.">
+                  School notices will appear here immediately after staff publish them.
+                </EmptyState>
+              )}
+            </div>
+
+            <ViewMoreButton
+              expanded={expandedSections.announcements}
+              total={content.announcements.length}
+              initialCount={3}
+              onClick={() => toggleExpandedSection("announcements")}
+              viewLabel="View all notices"
+              fewerLabel="Show fewer notices"
+            />
+          </div>
+        </section>
 
         <section className="section deep" aria-label="School numbers">
           <div className="container">
@@ -604,18 +738,6 @@ function App() {
           </div>
         </section>
 
-        <section className="section deep" id="admin">
-          <div className="container cms">
-            <AdminDashboard />
-
-            <div className="cms-copy">
-              <div className="section-kicker">{siteContent.adminCopy.kicker}</div>
-              <h2>{siteContent.adminCopy.title}</h2>
-              <p>{siteContent.adminCopy.body}</p>
-            </div>
-          </div>
-        </section>
-
         <section id="contact" className="section">
           <div className="container contact">
             <div>
@@ -732,6 +854,7 @@ function App() {
           <div className="footer-links">
             <a href="#about">About</a>
             <a href="#academics">Academics</a>
+            <a href="#notices">Notices</a>
             <a href="#admissions">Admissions</a>
             <a href="#contact">Contact</a>
           </div>
