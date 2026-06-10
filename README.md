@@ -1,25 +1,84 @@
-# Sadhana School MERN Website
+# Sadhana EM School Divili Website
 
-This project converts the reference-only static `index.html` school website into a maintainable MERN application while preserving the finalized visual design.
+Official school website for Sadhana EM School, Divili.
 
-The original `index.html` is intentionally ignored in git and should stay untouched. The React app uses the same CSS and page structure, then fetches dynamic school content from the Express API.
+- Public website: https://sadhana-em-school-divili-client.vercel.app
+- Backend service: https://sadhana-em-school-divili.onrender.com
 
-The school logo is served from `client/public/school-logo.jpeg` and is used in the header, footer, favicon, and social preview metadata.
+This website is built for parents, students, and school staff. Parents can read school information, view official updates, and submit admission enquiries. School staff can securely update notices, events, faculty profiles, academic programs, contact details, gallery items, and enquiry follow-up without calling a developer for routine changes.
 
-## Stack
+## How Parents Use The Website
 
-- React + Vite frontend in `client/`
-- Express + Node API in `server/`
-- MongoDB with Mongoose models
-- Cloudinary-backed image uploads for admin-managed media
-- RESTful routes for announcements, events, faculty, programs, and admission inquiries
-- Helmet, CORS, public/API rate limiting, separate login throttling, validation, centralized errors, and environment configuration
-- Protected staff dashboard for managing live school content, website page copy, contact details, gallery items, and enquiry follow-up
+Parents can use the public website to:
+
+- Learn about Sadhana EM School, academics, facilities, admissions, events, and notices.
+- View the latest published school announcements and events.
+- See faculty and academic program information after the school office publishes it.
+- Submit an admission enquiry from the enquiry form.
+- Use the available contact options for phone, WhatsApp, email, campus address, and office timings after the school office fills them in.
+
+The website does not show fake records. If the school has not published notices, events, faculty profiles, or programs yet, the website shows clean empty states until real information is added.
+
+## How School Staff Use The Website
+
+Staff can manage the website from the protected staff portal:
+
+1. Open the public website.
+2. Click `Staff Login` in the navigation.
+3. Sign in with the private staff username and password configured in the deployment environment.
+4. Use the dashboard tabs to manage the website.
+
+Staff can update:
+
+- Website text, school name, banner message, hero section, about section, admissions copy, gallery, contact details, and enquiry form options.
+- Announcements and school notices.
+- Events and calendar-style updates.
+- Faculty and staff profiles.
+- Academic programs.
+- Admission enquiries, including status and staff notes.
+- Images through Cloudinary upload fields where image support is available.
+
+Published records appear on the public website automatically. Hidden or inactive records stay in the staff portal and are not shown to parents.
+
+## Public Display Rules
+
+- Recent events are shown first on the home page.
+- If more records are available, the website provides a parent-facing `View all` option.
+- Notices appear in the school updates section.
+- Faculty profiles appear in the faculty section when marked active.
+- Academic programs appear in the academics section when published.
+- Admission enquiries are stored privately for staff review and are not shown publicly.
+
+## Staff Content Checklist
+
+Before sharing the website widely with parents, the school office should add or verify:
+
+- School phone number, WhatsApp link, email, campus address, and office hours.
+- Real admission enquiry class options.
+- At least one official announcement or notice, if available.
+- Upcoming school events, if available.
+- Faculty profiles approved by the school.
+- Academic program details approved by the school.
+- Real gallery images approved for public display.
+
+Do not publish test content, placeholder phone numbers, or unverified school information on the live website.
+
+## Current Deployment Setup
+
+The live website is deployed as a split production setup:
+
+- Frontend: Vercel
+- Backend/API: Render
+- Database: MongoDB Atlas
+- Image uploads: Cloudinary
+
+The Vercel frontend calls the Render backend through `VITE_API_BASE_URL`.
 
 ## Project Structure
 
 ```text
 client/
+  public/
   src/
     api/
     config/
@@ -27,6 +86,8 @@ client/
     App.jsx
     main.jsx
     styles.css
+  vercel.json
+
 server/
   src/
     config/
@@ -37,11 +98,23 @@ server/
     scripts/
     services/
     validators/
+
+vercel.json
+Dockerfile
+package.json
 ```
 
-## Environment Setup
+The original static `index.html` is reference-only and should stay untouched. The production React app lives in `client/`.
 
-Copy the examples and fill values when available:
+## Local Setup For Development
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create environment files from the examples:
 
 ```bash
 cp .env.example .env
@@ -49,154 +122,152 @@ cp server/.env.example server/.env
 cp client/.env.example client/.env
 ```
 
-Important variables:
+Start the full stack app:
+
+```bash
+npm run dev
+```
+
+Development URLs:
+
+- React frontend: http://127.0.0.1:5173
+- API health check: http://localhost:5000/api/health
+
+## Required Environment Variables
+
+Backend production variables:
 
 ```text
+NODE_ENV=production
 PORT=5000
-MONGODB_URI=your_mongodb_connection_string
-ADMIN_USERNAME=school_staff_username
-ADMIN_PASSWORD=school_staff_password
-ADMIN_PASSWORD_HASH=scrypt_password_hash
-ADMIN_TOKEN_SECRET=long_random_token_secret
+MONGODB_URI=
+ADMIN_USERNAME=
+ADMIN_PASSWORD=
+ADMIN_PASSWORD_HASH=
+ADMIN_TOKEN_SECRET=
 ADMIN_TOKEN_EXPIRES_IN_MINUTES=60
-CORS_ORIGIN=http://localhost:5173,http://127.0.0.1:5173
+CORS_ORIGIN=
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX=200
 AUTH_RATE_LIMIT_WINDOW_MS=900000
 AUTH_RATE_LIMIT_MAX=10
 INQUIRY_RATE_LIMIT_WINDOW_MS=3600000
 INQUIRY_RATE_LIMIT_MAX=20
-CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 CLOUDINARY_FOLDER=sadhana-school
 CLOUDINARY_UPLOAD_MAX_BYTES=5242880
-VITE_API_BASE_URL=
-VITE_SCHOOL_PHONE_DISPLAY=
-VITE_SCHOOL_PHONE_TEL=
-VITE_SCHOOL_WHATSAPP_URL=
-VITE_SCHOOL_EMAIL=
-VITE_SCHOOL_CAMPUS=
-VITE_SCHOOL_OFFICE_HOURS=
+TRUST_PROXY=true
 ```
 
-The application does not ship seed/demo school records. If MongoDB is connected but empty, public content APIs return empty arrays and the frontend shows neutral empty states until real school content is added. If MongoDB is unavailable, database-backed APIs return a clear service-unavailable error instead of pretending a parent enquiry or staff update succeeded.
+Frontend production variable:
 
-In production, `MONGODB_URI`, `ADMIN_USERNAME`, either `ADMIN_PASSWORD` or `ADMIN_PASSWORD_HASH`, `ADMIN_TOKEN_SECRET`, and the Cloudinary credentials are required.
-
-## Install and Run
-
-```bash
-npm install
-npm run dev
+```text
+VITE_API_BASE_URL=https://sadhana-em-school-divili.onrender.com
 ```
 
-Development URLs:
+Keep all real passwords, MongoDB URLs, token secrets, and Cloudinary secrets only in deployment platform environment variables. Do not commit them to GitHub.
 
-- React: `http://127.0.0.1:5173`
-- API: `http://localhost:5000/api/health`
+## Production Commands
 
-The Vite dev server proxies `/api` calls to Express.
-
-## Admin Password Hash
-
-You can use either a plain environment password or a password hash. For the strongest production setup, generate a password hash for the real staff password:
-
-```bash
-npm run hash:password -- "your strong staff password"
-```
-
-Put the generated value in `ADMIN_PASSWORD_HASH`. If you choose the simpler setup, set `ADMIN_PASSWORD` directly in the deployment platform environment variables.
-
-The public page includes a protected `#admin` dashboard. Staff can sign in with the configured admin credentials to update the public website shell, contact details, hero/about/admissions/facility/gallery copy, upload Cloudinary images, create/edit/publish/hide/delete announcements, events, faculty profiles, and academic programs, and manage admission enquiry status, notes, and deletion.
-
-## Production Build
+Check required production configuration:
 
 ```bash
 npm run check:deploy
+```
+
+Build the React app:
+
+```bash
 npm run build
+```
+
+Start the production server:
+
+```bash
 npm run start
 ```
 
-`npm run check:deploy` validates required production environment variables without printing secrets. `npm run build` creates `client/dist`. The Express server serves that production React build when it exists, while keeping all API routes under `/api`.
+## Deploying The Frontend On Vercel
 
-## API Endpoints
+For the current Vercel frontend deployment:
 
-Public reads and content management routes:
+- Framework preset: Vite
+- Root directory: `client`
+- Build command: `npm run build`
+- Output directory: `dist`
+- Environment variable: `VITE_API_BASE_URL=https://sadhana-em-school-divili.onrender.com`
+
+If the Vercel project is imported from the repository root instead:
+
+- Build command: `npm run build`
+- Output directory: `client/dist`
+
+The repository includes Vercel SPA fallback configuration in both the root and `client/` so direct links and refreshes do not show a 404 page.
+
+## Deploying The Backend On Render
+
+Render should be configured as a Node web service:
+
+- Build command: `npm install && npm run build`
+- Start command: `npm run start`
+- Health check path: `/api/health`
+
+Set `CORS_ORIGIN` to the approved frontend domains, for example:
+
+```text
+https://sadhana-em-school-divili-client.vercel.app,https://sadhana-em-school-divili.onrender.com
+```
+
+After changing environment variables, redeploy the Render service.
+
+## API Summary
+
+Public endpoints used by the website:
+
+```text
+GET  /api/site-content
+GET  /api/announcements
+GET  /api/events
+GET  /api/faculty
+GET  /api/programs
+POST /api/inquiries
+```
+
+Staff-only endpoints require a bearer token from staff login:
 
 ```text
 POST   /api/auth/login
-
-GET    /api/announcements
-POST   /api/announcements
-GET    /api/announcements/:id
-PATCH  /api/announcements/:id
-DELETE /api/announcements/:id
-
-GET    /api/events
-POST   /api/events
-GET    /api/events/:id
-PATCH  /api/events/:id
-DELETE /api/events/:id
-
-GET    /api/faculty
-POST   /api/faculty
-GET    /api/faculty/:id
-PATCH  /api/faculty/:id
-DELETE /api/faculty/:id
-
-GET    /api/programs
-POST   /api/programs
-GET    /api/programs/:id
-PATCH  /api/programs/:id
-DELETE /api/programs/:id
-
-GET    /api/site-content
-PUT    /api/site-content
-
-POST   /api/uploads/image
-DELETE /api/uploads/image
-
-GET    /api/inquiries
-POST   /api/inquiries
-PATCH  /api/inquiries/:id/status
-DELETE /api/inquiries/:id
-
 GET    /api/admin/announcements
 GET    /api/admin/events
 GET    /api/admin/faculty
 GET    /api/admin/programs
 GET    /api/admin/inquiries
+POST   /api/announcements
+PATCH  /api/announcements/:id
+DELETE /api/announcements/:id
+POST   /api/events
+PATCH  /api/events/:id
+DELETE /api/events/:id
+POST   /api/faculty
+PATCH  /api/faculty/:id
+DELETE /api/faculty/:id
+POST   /api/programs
+PATCH  /api/programs/:id
+DELETE /api/programs/:id
+PUT    /api/site-content
+POST   /api/uploads/image
+DELETE /api/uploads/image
+PATCH  /api/inquiries/:id/status
+DELETE /api/inquiries/:id
 ```
 
-The public UI consumes the site-content singleton, announcements, events, programs, faculty profiles, and the inquiry submission endpoint. The homepage shows recent public records first and adds parent-facing "view all" controls when the school publishes more items.
+## Security And Reliability Notes
 
-Admin write routes, image upload routes, and inquiry management routes require a bearer token from `POST /api/auth/login`:
-
-```text
-Authorization: Bearer <token>
-```
-
-Public parent-facing routes remain open:
-
-- `GET` content endpoints for website display
-- `POST /api/inquiries` for admission enquiries
-
-## Deployment Notes
-
-For a standard Node host:
-
-1. Set `NODE_ENV=production`, `MONGODB_URI`, `ADMIN_USERNAME`, either `ADMIN_PASSWORD` or `ADMIN_PASSWORD_HASH`, `ADMIN_TOKEN_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `PORT`, and `CORS_ORIGIN`.
-2. Run `npm install`.
-3. Run `npm run check:deploy`.
-4. Run `npm run build`.
-5. Run `npm run start`.
-
-For Docker:
-
-```bash
-docker build -t sadhana-school-mern .
-docker run -p 5000:5000 --env-file .env sadhana-school-mern
-```
-
-Use a managed MongoDB provider for production and restrict `CORS_ORIGIN` to the final frontend domain.
+- Staff login is protected by server-side credentials and signed tokens.
+- API traffic is protected with CORS, Helmet, validation, rate limiting, centralized error handling, and production environment checks.
+- Public enquiry submissions are validated before saving.
+- Image uploads are handled through Cloudinary for production deployment.
+- No seed or demo content is inserted automatically.
+- The deployment check script validates required environment variables without printing secrets.
