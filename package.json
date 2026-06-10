@@ -1,0 +1,23 @@
+{
+  "name": "sadhana-school-mern",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-ready MERN conversion of the Sadhana School static website.",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently \"nodemon server/src/server.js\" \"vite --host 127.0.0.1 --config client/vite.config.js\"",
+    "build": "vite build --config client/vite.config.js",
+    "start": "node server/src/server.js",
+    "hash:password": "node server/src/scripts/hashPassword.js"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

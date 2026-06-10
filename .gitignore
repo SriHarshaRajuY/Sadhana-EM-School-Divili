@@ -1,0 +1,19 @@
+node_modules/
+npm-debug.log*
+
+.env
+.env.*
+!*.env.example
+
+client/dist/
+server/logs/
+coverage/
+
+# Reference-only static artifact supplied by the client.
+/index.html
+
+# Original loose logo asset; app-ready copy lives in client/public/.
+/school logo.jpeg
+
+.DS_Store
+Thumbs.db
