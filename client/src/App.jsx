@@ -217,7 +217,7 @@ function App() {
       form.reset();
       window.alert("Thank you. The admissions team will contact you soon.");
     } catch (error) {
-      window.alert(error.message || "Unable to send enquiry right now. Please try again.");
+      window.alert("We could not submit the enquiry right now. Please try again shortly.");
     } finally {
       setIsSubmitting(false);
     }

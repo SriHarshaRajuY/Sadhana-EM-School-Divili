@@ -1243,6 +1243,14 @@
       background: rgba(255,255,255,0.08);
     }
 
+    .cms-copy h2 {
+      max-width: 100%;
+      font-size: clamp(2.15rem, 3.2vw, 3.35rem);
+      line-height: 1.07;
+      overflow-wrap: break-word;
+      text-wrap: balance;
+    }
+
     .cms-copy p {
       color: rgba(255,255,255,0.78);
       margin-top: 14px;

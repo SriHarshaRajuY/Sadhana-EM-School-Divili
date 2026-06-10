@@ -5,7 +5,7 @@ const TOKEN_ALGORITHM = "HS256";
 const TOKEN_TYPE = "JWT";
 const PASSWORD_KEY_LENGTH = 64;
 
-const authError = (message = "Authentication token is invalid.", statusCode = 401) => {
+const authError = (message = "Please sign in again.", statusCode = 401) => {
   const error = new Error(message);
   error.statusCode = statusCode;
   return error;
@@ -58,7 +58,7 @@ const verifyPlainPassword = (password, expectedPassword) => {
 
 const signToken = (payload) => {
   if (!env.ADMIN_TOKEN_SECRET) {
-    const error = new Error("Admin token signing is not configured.");
+    const error = new Error("Staff access is temporarily unavailable.");
     error.statusCode = 503;
     throw error;
   }
@@ -75,7 +75,7 @@ const signToken = (payload) => {
 
 const verifyAdminToken = (token) => {
   if (!env.ADMIN_TOKEN_SECRET) {
-    const error = new Error("Admin token verification is not configured.");
+    const error = new Error("Staff access is temporarily unavailable.");
     error.statusCode = 503;
     throw error;
   }
@@ -103,7 +103,7 @@ const verifyAdminToken = (token) => {
   }
 
   if (!Number.isInteger(payload.exp) || payload.exp <= Math.floor(Date.now() / 1000)) {
-    throw authError("Authentication token has expired.");
+    throw authError("Your staff session has expired. Please sign in again.");
   }
 
   if (payload.role !== "admin") {

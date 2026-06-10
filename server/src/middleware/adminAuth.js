@@ -13,7 +13,7 @@ const getBearerToken = (req) => {
 const requireAdmin = (req, res, next) => {
   const token = getBearerToken(req);
   if (!token) {
-    const error = new Error("Admin bearer token is missing.");
+    const error = new Error("Please sign in to continue.");
     error.statusCode = 401;
     return next(error);
   }

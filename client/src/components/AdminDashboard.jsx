@@ -256,6 +256,33 @@ const cleanPayload = (payload) =>
     Object.entries(payload).filter(([, value]) => value !== "" && value !== undefined)
   );
 
+const getErrorMessage = (error) => String(error?.message || "");
+
+const isStaffAccessError = (error) =>
+  /token|auth|login|unauthorized|bearer|session/i.test(getErrorMessage(error));
+
+const getFriendlyStaffMessage = (error, fallback) => {
+  const message = getErrorMessage(error);
+
+  if (/invalid username|invalid password|username or password/i.test(message)) {
+    return "Please check the username and password and try again.";
+  }
+
+  if (isStaffAccessError(error)) {
+    return "For staff security, please sign in again.";
+  }
+
+  if (/validation|required|must be|expected|valid/i.test(message)) {
+    return "Please check the entered details and try again.";
+  }
+
+  if (/database|service unavailable|not configured|internal server/i.test(message)) {
+    return "This service is temporarily unavailable. Please try again shortly.";
+  }
+
+  return fallback;
+};
+
 const getDisplayName = (record) => record.title || record.name || record.parentName || "Untitled record";
 
 const getRecordLabel = (config) => (config.singularLabel || config.label).toLowerCase();
@@ -469,14 +496,14 @@ function AdminDashboard() {
       setSiteContent(siteContentRecord ? { ...mergedSiteContent, _id: siteContentRecord._id } : mergedSiteContent);
       setSiteDraft(flattenSiteContent(mergedSiteContent));
     } catch (error) {
-      if (/token|auth|login|unauthorized/i.test(error.message)) {
+      if (isStaffAccessError(error)) {
         window.localStorage.removeItem(ADMIN_TOKEN_KEY);
         setToken("");
       }
 
       setStatus({
         type: "error",
-        message: error.message || "Unable to load staff portal."
+        message: getFriendlyStaffMessage(error, "Unable to load the staff portal. Please try again.")
       });
     } finally {
       setIsBusy(false);
@@ -501,7 +528,7 @@ function AdminDashboard() {
       setStatus({ type: "success", message: "Signed in successfully." });
       await loadDashboard(session.token);
     } catch (error) {
-      setStatus({ type: "error", message: error.message || "Unable to sign in." });
+      setStatus({ type: "error", message: getFriendlyStaffMessage(error, "Unable to sign in. Please try again.") });
     } finally {
       setIsBusy(false);
     }
@@ -542,7 +569,7 @@ function AdminDashboard() {
       }));
       setStatus({ type: "success", message: "Image uploaded successfully." });
     } catch (error) {
-      setStatus({ type: "error", message: error.message || "Unable to upload image." });
+      setStatus({ type: "error", message: getFriendlyStaffMessage(error, "Unable to upload the image. Please try again.") });
     } finally {
       setUploadingKey("");
     }
@@ -565,7 +592,7 @@ function AdminDashboard() {
       }));
       setStatus({ type: "success", message: "Image uploaded and added to the website editor." });
     } catch (error) {
-      setStatus({ type: "error", message: error.message || "Unable to upload image." });
+      setStatus({ type: "error", message: getFriendlyStaffMessage(error, "Unable to upload the image. Please try again.") });
     } finally {
       setUploadingKey("");
     }
@@ -584,7 +611,7 @@ function AdminDashboard() {
       setSiteDraft(flattenSiteContent(mergedSiteContent));
       setStatus({ type: "success", message: "Website content updated successfully." });
     } catch (error) {
-      setStatus({ type: "error", message: error.message || "Unable to save website content." });
+      setStatus({ type: "error", message: getFriendlyStaffMessage(error, "Unable to save website content. Please try again.") });
     } finally {
       setIsBusy(false);
     }
@@ -642,7 +669,7 @@ function AdminDashboard() {
         message: `${config.singularLabel || config.label} ${editingId ? "updated" : "created"} successfully.`
       });
     } catch (error) {
-      setStatus({ type: "error", message: error.message || "Unable to save record." });
+      setStatus({ type: "error", message: getFriendlyStaffMessage(error, "Unable to save this record. Please try again.") });
     } finally {
       setIsBusy(false);
     }
@@ -684,7 +711,7 @@ function AdminDashboard() {
       await loadDashboard();
       setStatus({ type: "success", message: `${config.label} visibility updated.` });
     } catch (error) {
-      setStatus({ type: "error", message: error.message || "Unable to update visibility." });
+      setStatus({ type: "error", message: getFriendlyStaffMessage(error, "Unable to update visibility. Please try again.") });
     } finally {
       setIsBusy(false);
     }
@@ -705,7 +732,7 @@ function AdminDashboard() {
       resetEditor();
       setStatus({ type: "success", message: `${config.singularLabel || config.label} deleted.` });
     } catch (error) {
-      setStatus({ type: "error", message: error.message || "Unable to delete record." });
+      setStatus({ type: "error", message: getFriendlyStaffMessage(error, "Unable to delete this record. Please try again.") });
     } finally {
       setIsBusy(false);
     }
@@ -723,7 +750,7 @@ function AdminDashboard() {
       await loadDashboard();
       setStatus({ type: "success", message: "Inquiry follow-up updated." });
     } catch (error) {
-      setStatus({ type: "error", message: error.message || "Unable to update inquiry." });
+      setStatus({ type: "error", message: getFriendlyStaffMessage(error, "Unable to update the enquiry. Please try again.") });
     } finally {
       setIsBusy(false);
     }
@@ -743,7 +770,7 @@ function AdminDashboard() {
       await loadDashboard();
       setStatus({ type: "success", message: "Inquiry deleted." });
     } catch (error) {
-      setStatus({ type: "error", message: error.message || "Unable to delete inquiry." });
+      setStatus({ type: "error", message: getFriendlyStaffMessage(error, "Unable to delete the enquiry. Please try again.") });
     } finally {
       setIsBusy(false);
     }
